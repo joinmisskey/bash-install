@@ -138,6 +138,7 @@ echo "";
 echo "Database (PostgreSQL) setting";
 tput setaf 7;
 echo "Do you want to install postgres locally?:";
+echo "(If you have run this script before in this computer, choose n and enter values you have set.)"
 read -p "[y/n] > " yn
 case "$yn" in
 	[Nn]|[Nn][Oo])
@@ -150,7 +151,7 @@ case "$yn" in
 		read -p "> " -e -i "5432" db_port;
 		;;
 	*)
-		echo "PostgreSQL will be installed on this computer.";
+		echo "PostgreSQL will be installed on this computer at localhost:5432.";
 		db_local=true;
 
 		db_host=localhost;
@@ -172,6 +173,7 @@ echo "";
 echo "Redis setting";
 tput setaf 7;
 echo "Do you want to install redis locally?:";
+echo "(If you have run this script before in this computer, choose n and enter values you have set.)"
 read -p "[Y/n] > " yn
 case "$yn" in
 	[Nn]|[Nn][Oo])
@@ -184,7 +186,7 @@ case "$yn" in
 		read -e -p "> " -e -i "6379" redis_port;
 		;;
 	*)
-		echo "Redis will be installed on this computer.";
+		echo "Redis will be installed on this computer at localhost:6379.";
 		redis_local=true;
 
 		redis_host=localhost;
