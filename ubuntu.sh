@@ -335,6 +335,7 @@ fi
 
 #region work with misskey user
 su $misskey_user << MKEOF
+set -eu;
 cd ~;
 
 tput setaf 3;
@@ -384,6 +385,7 @@ systemctl restart nginx;
 
 #region work with misskey user
 su $misskey_user << MKEOF;
+set -eu;
 cd ~;
 NODE_ENV=production;
 
