@@ -450,3 +450,4 @@ echo "";
 tput setaf 2;
 tput bold;
 echo "ALL MISSKEY INSTALLATION PROCESSES ARE COMPLETE!";
+echo "Jump to https://$host/ and continue set up.";
