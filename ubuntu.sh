@@ -37,7 +37,7 @@ else
 fi
 
 tput setaf 2;
-echo "Check; Memory;"
+echo "Check: Memory;"
 
 mem_all=`free -t --si -g | tail -n 1`;
 mem_allarr=(${mem_all//\\t/ });
