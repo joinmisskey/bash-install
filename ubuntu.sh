@@ -58,10 +58,10 @@ else
 		swapon /swap;
 		echo "/swapfile none swap sw 0" >> /etc/fstab;
 		free -t;
-        else
+	else
 		echo "  Add more swaps!";
 		exit 1;
-        fi
+	fi
 fi
 #endregion
 
