@@ -406,7 +406,7 @@ tput setaf 7;
 npm run init
 
 tput setaf 3;
-echo "Check: If Misskey starts;"
+echo "Check: If Misskey starts correctly;"
 tput setaf 7;
 if timeout 20 npm start | grep -q "Now listening on port"; then
 	echo "	OK.";
@@ -428,7 +428,7 @@ Description=Misskey daemon
 [Service]
 Type=simple
 User=misskey
-ExecStart=/usr/local/bin/npm start
+ExecStart=`which npm` start
 WorkingDirectory=/home/misskey/misskey
 Environment="NODE_ENV=production"
 TimeoutSec=60
