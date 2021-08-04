@@ -229,10 +229,10 @@ if $nginx_local; then
 	tput setaf 3;
 	echo "Process: port open;"
 	tput setaf 7;
-	if ! cat /etc/iptables/rules.v4 | grep -q -x -e "-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT"; then iptables -I INPUT -p tcp --dport 80 -j ACCEPT; fi
-	if ! cat /etc/iptables/rules.v4 | grep -q -x -e "-A INPUT -p tcp -m tcp --dport 443 -j ACCEPT"; then iptables -I INPUT -p tcp --dport 443 -j ACCEPT; fi
-	if ! cat /etc/iptables/rules.v6 | grep -q -x -e "-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT"; then ip6tables -I INPUT -p tcp --dport 80 -j ACCEPT; fi
-	if ! cat /etc/iptables/rules.v6 | grep -q -x -e "-A INPUT -p tcp -m tcp --dport 443 -j ACCEPT"; then ip6tables -I INPUT -p tcp --dport 443 -j ACCEPT; fi
+	cat /etc/iptables/rules.v4 | grep -q -x -e "-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT" || iptables -I INPUT -p tcp --dport 80 -j ACCEPT;
+	cat /etc/iptables/rules.v4 | grep -q -x -e "-A INPUT -p tcp -m tcp --dport 443 -j ACCEPT" || iptables -I INPUT -p tcp --dport 443 -j ACCEPT;
+	cat /etc/iptables/rules.v6 | grep -q -x -e "-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT" || ip6tables -I INPUT -p tcp --dport 80 -j ACCEPT;
+	cat /etc/iptables/rules.v6 | grep -q -x -e "-A INPUT -p tcp -m tcp --dport 443 -j ACCEPT" || ip6tables -I INPUT -p tcp --dport 443 -j ACCEPT;
 
 	netfilter-persistent save;
 	netfilter-persistent reload;
