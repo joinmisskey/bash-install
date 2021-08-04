@@ -343,8 +343,15 @@ cd ~;
 tput setaf 3;
 echo "Process: git clone;";
 tput setaf 7;
-git clone -b "$branch" --depth 1 "$repository" $misskey_directory;
-cd $misskey_directory;
+if [ -e "./$misskey_directory" ]; then
+	if [ -f "./$misskey_directory" ]; then
+		rm "./$misskey_directory";
+	else
+		rm -rf "./$misskey_directory";
+	fi
+fi
+git clone -b "$branch" --depth 1 "$repository" "$misskey_directory";
+cd "$misskey_directory";
 
 tput setaf 3;
 echo "Process: create default.yml;"
@@ -391,7 +398,7 @@ set -eu;
 cd ~;
 NODE_ENV=production;
 
-cd $misskey_directory
+cd "$misskey_directory"
 tput setaf 3;
 echo "Process: install npm packages;"
 tput setaf 7;
@@ -429,9 +436,9 @@ Description=Misskey daemon
 
 [Service]
 Type=simple
-User=misskey
+User=$misskey_user
 ExecStart=`which npm` start
-WorkingDirectory=/home/misskey/$misskey_directory
+WorkingDirectory="/home/misskey/$misskey_directory"
 Environment="NODE_ENV=production"
 TimeoutSec=60
 StandardOutput=syslog
