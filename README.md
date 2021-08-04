@@ -24,7 +24,7 @@ Make sure all packages are up to date and reboot.
 すべてのパッケージを最新にし、再起動します。
 
 ```
-sudo apt update; sudo apt upgrade -y; sudo reboot
+sudo apt update; sudo apt full-upgrade -y; sudo reboot
 ```
 
 ### 3. Start the installation - インストールをはじめる
