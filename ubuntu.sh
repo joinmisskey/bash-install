@@ -35,6 +35,34 @@ else
 	tput setaf 7;
 	echo "	OK. I am root user.";
 fi
+
+tput setaf 2;
+echo "Check; Memory;"
+
+mem_all=`free -t --si -g | tail -n 1`;
+mem_allarr=(${mem_all//\\t/ });
+
+if [ ${mem_allarr[1]} -ge 2 ]; then
+        tput setaf 7;
+        echo "  OK. This computer has ${mem_allarr[1]}GB RAM.";
+else
+        tput setaf 1;
+        echo "  NG. This computer doesn't have enough RAM (>= 2GB, Current ${mem_allarr[1]}GB).";
+        tput setaf 7;
+        mem_swap=`free | tail -n 1`;
+        mem_swaparr=(${mem_swap//\\t/ });
+        if [ ${mem_swaparr[1]} -eq 0 ]; then
+                echo "  Swap will be made (1M x 1536).";
+                dd if=/dev/zero of=/swap bs=1M count=1536;
+                mkswap /swap;
+                swapon /swap;
+                echo "/swapfile none swap sw 0" >> /etc/fstab;
+                free -t;
+        else
+                echo "  Add more swaps!";
+                exit 1;
+        fi
+fi
 #endregion
 
 #region user input
