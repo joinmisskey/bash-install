@@ -51,7 +51,7 @@ read -p "> " -e -i "master" branch;
 
 tput setaf 3;
 echo "";
-echo "Enter user name where you want to execute Misskey:";
+echo "Enter the name of user with which you want to execute Misskey:";
 tput setaf 7;
 read -p "> " -e -i "misskey" misskey_user;
 
