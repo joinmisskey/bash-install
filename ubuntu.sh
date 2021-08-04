@@ -44,6 +44,8 @@ tput setaf 7;
 
 echo "Repository url where you want to install:"
 read -p "> " -e -i "https://github.com/misskey-dev/misskey.git" repository;
+echo "The name of a new directory to clone:"
+read -p "> " -e -i "misskey" misskey_directory;
 echo "Branch or Tag"
 read -p "> " -e -i "master" branch;
 
@@ -341,8 +343,8 @@ cd ~;
 tput setaf 3;
 echo "Process: git clone;";
 tput setaf 7;
-git clone "$repository" -b "$branch" --depth 1;
-cd misskey;
+git clone -b "$branch" --depth 1 "$repository" $misskey_directory;
+cd $misskey_directory;
 
 tput setaf 3;
 echo "Process: create default.yml;"
@@ -389,7 +391,7 @@ set -eu;
 cd ~;
 NODE_ENV=production;
 
-cd misskey
+cd $misskey_directory
 tput setaf 3;
 echo "Process: install npm packages;"
 tput setaf 7;
@@ -429,7 +431,7 @@ Description=Misskey daemon
 Type=simple
 User=misskey
 ExecStart=`which npm` start
-WorkingDirectory=/home/misskey/misskey
+WorkingDirectory=/home/misskey/$misskey_directory
 Environment="NODE_ENV=production"
 TimeoutSec=60
 StandardOutput=syslog
