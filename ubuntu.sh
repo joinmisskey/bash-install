@@ -355,7 +355,7 @@ port: $misskey_port
 db:
   host: '$db_host'
   port: $db_port
-  db  : 'db_name'
+  db  : '$db_name'
   user: '$db_user'
   pass: '$db_pass'
 
