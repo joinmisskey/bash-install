@@ -1,4 +1,4 @@
-# Misskey install shell script v0.1.0
+# Misskey install shell script v0.1.1
 Install Misskey with one shell script!  
 Misskeyを簡単にインストールするためのシェルスクリプトができました！
 
@@ -56,4 +56,3 @@ It is difficult to provide assistance for environments other than the above, but
 
 Suggestions for features are also welcome.  
 機能の提案についても歓迎いたします。
-
