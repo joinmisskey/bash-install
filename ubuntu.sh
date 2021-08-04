@@ -388,7 +388,7 @@ MKEOF
 tput setaf 3;
 echo "Process: copy and apply nginx config;"
 tput setaf 7;
-sed -e 's/example.tld/$host/g' /home/misskey/misskey/docs/examples/misskey.nginx > /etc/nginx/conf.d/misskey.conf;
+sed -e "s/example.tld/$host/g" /home/misskey/$misskey_directory/docs/examples/misskey.nginx > /etc/nginx/conf.d/misskey.conf;
 nginx -t;
 systemctl restart nginx;
 
