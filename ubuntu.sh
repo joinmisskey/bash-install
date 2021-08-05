@@ -426,23 +426,22 @@ systemctl restart nginx;
 su $misskey_user << MKEOF;
 set -eu;
 cd ~;
-NODE_ENV=production;
 
 cd $misskey_directory
 tput setaf 3;
 echo "Process: install npm packages;"
 tput setaf 7;
-npx yarn install
+npx yarn install;
 
 tput setaf 3;
 echo "Process: build misskey;"
 tput setaf 7;
-npm run build
+NODE_ENV=production npm run build;
 
 tput setaf 3;
 echo "Process: initialize database;"
 tput setaf 7;
-npm run init
+npm run init;
 
 tput setaf 3;
 echo "Check: If Misskey starts correctly;"
