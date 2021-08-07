@@ -2,6 +2,7 @@
 tput setaf 4;
 echo "";
 echo "Misskey auto setup for Ubuntu";
+echo " v0.2.0";
 echo "";
 
 #region initial check
@@ -255,7 +256,7 @@ tput setaf 3;
 echo "Process: apt install #1;";
 tput setaf 7;
 apt update -y;
-apt install -y curl gnupg2 ca-certificates lsb-release git build-essential software-properties-common`$nginx_local && echo " certbot"``$cloudflare && echo " python3-certbot-dns-cloudflare"`;
+apt install -y curl gnupg2 ca-certificates lsb-release git build-essential software-properties-common ffmpeg`$nginx_local && echo " certbot"``$cloudflare && echo " python3-certbot-dns-cloudflare"`;
 
 if $nginx_local; then
 	tput setaf 3;
