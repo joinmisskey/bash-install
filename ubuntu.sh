@@ -1,8 +1,10 @@
 #!/bin/bash
+version=0.2.0
+
 tput setaf 4;
 echo "";
 echo "Misskey auto setup for Ubuntu";
-echo " v0.2.0";
+echo " v$version";
 echo "";
 
 #region initial check
@@ -490,3 +492,6 @@ tput setaf 2;
 tput bold;
 echo "ALL MISSKEY INSTALLATION PROCESSES ARE COMPLETE!";
 echo "Jump to https://$host/ and continue set up.";
+tput setaf 7;
+echo "This script version is v$version.";
+echo "Please follow @joinmisskey@misskey.io to address bugs and updates.";
