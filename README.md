@@ -1,4 +1,4 @@
-# Misskey install shell script v0.1.3
+# Misskey install shell script v0.2.0
 Install Misskey with one shell script!  
 Misskeyを簡単にインストールするためのシェルスクリプトができました！
 
