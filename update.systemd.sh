@@ -10,7 +10,7 @@ git pull;
 MKEOF
 #endregion
 
-sudo systemctl stop misskey
+systemctl stop misskey
 
 #region work with misskey user
 su $misskey_user << MKEOF
@@ -23,4 +23,11 @@ npm run migrate;
 MKEOF
 #endregion
 
-sudo systemctl start misskey
+if [ $1 == "-r" ]; then
+	apt update -y;
+	apt full-upgrade -y;
+	reboot;
+else
+	systemctl start misskey;
+fi
+
