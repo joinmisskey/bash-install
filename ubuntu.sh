@@ -71,6 +71,11 @@ echo "Y = To use Docker / N = To use systemd"
 read -r -p "[Y/n] > " yn
 case "$yn" in
 	[Nn]|[Nn][Oo])
+		echo "Use Systemd.";
+		method=systemd;
+		misskey_localhost=localhost
+		;;
+	*)
 		echo "Use Docker.";
 		method=docker;
 
@@ -81,11 +86,6 @@ case "$yn" in
 
 		echo "The host name of docker host to bind with 'docker run --add-host='.";
 		read -r -p "> " -e -i "docker_host" misskey_localhost;
-		;;
-	*)
-		echo "Use Systemd.";
-		method=systemd;
-		misskey_localhost=localhost
 		;;
 esac
 #endregion
