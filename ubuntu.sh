@@ -604,7 +604,6 @@ if [ $method != "systemd" ]; then
 		tput setaf 7;
 
 		if [ -f /etc/redis/redis.conf ]; then
-			sed -i'.mkmoded' -e "s/$pgconf_search/listen_addresses = '$docker_host_ip' /g" "$pg_conf";
 			cat > /etc/redis/docker.conf <<-_EOF
 			bind $docker_host_ip
 			requirepass $redis_pass
