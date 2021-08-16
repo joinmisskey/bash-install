@@ -185,7 +185,8 @@ case "$yn" in
 				echo "Make sure that your Cloudflare DNS is set up.";
 				cloudflare=false
 
-				echo "Enter Email address to register certificate";
+				echo "";
+				echo "Enter Email address to register Let's Encrypt certificate";
 				read -r -p "> " cf_mail;
 				;;
 			*)
