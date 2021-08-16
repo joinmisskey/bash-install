@@ -1,5 +1,5 @@
 #!/bin/bash
-version=1.0.0;
+version="1.0.0-beta";
 
 tput setaf 4;
 echo "";
@@ -334,7 +334,8 @@ if cut -d: -f1 /etc/passwd | grep -q -x "$misskey_user"; then
 else
 	useradd -m -U -s /bin/bash "$misskey_user";
 fi
-echo "user=\"$misskey_user\"" >> /root/.misskey.env
+echo "user=\"$misskey_user\"" > /root/.misskey.env
+echo "version=\"$version\"" > /root/.misskey.env
 m_uid=$(id -u "$misskey_user")
 
 tput setaf 3;
@@ -816,6 +817,7 @@ misskey_localhost="$misskey_localhost"
 docker_host_ip=$docker_host_ip
 repo="$docker_hub_repository"
 container="$docker_container"
+version="$version"
 _EOF
 MKEOF
 
