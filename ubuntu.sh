@@ -182,7 +182,7 @@ case "$yn" in
 				echo "OK, you don't use Cloudflare.";
 				echo "Let's encrypt certificate will be installed using the method without Cloudflare.";
 				echo "";
-				echo "Make sure that your Cloudflare DNS is set up.";
+				echo "Make sure that your DNS is set up.";
 				cloudflare=false
 
 				echo "";
@@ -195,7 +195,7 @@ case "$yn" in
 				echo "Enter Email address you registered to Cloudflare:";
 				read -r -p "> " cf_mail;
 				echo "Open https://dash.cloudflare.com/profile/api-tokens to get Global API Key and enter here it.";
-				echo "CloufFlare API Key: ";
+				echo "Cloudflare API Key: ";
 				read -r -p "> " cf_key;
 
 				mkdir -p /etc/cloudflare;
@@ -476,7 +476,6 @@ if [ $method != "systemd" ]; then
 	set -eu;
 	cd ~;
 	export XDG_RUNTIME_DIR=/run/user/$m_uid
-	echo $XDG_RUNTIME_DIR
 	dockerd-rootless-setuptool.sh install
 
 	export DOCKER_HOST=unix:///run/user/$m_uid/docker.sock
@@ -503,8 +502,11 @@ if [ $method != "systemd" ]; then
 		fi
 
 		pgconf_search="#listen_addresses = 'localhost'"
+		pgconf_text="listen_addresses = '$docker_host_ip'"
 		if grep "$pgconf_search" "$pg_conf"; then
-			sed -i'.mkmoded' -e "s/$pgconf_search/listen_addresses = '$docker_host_ip' /g" "$pg_conf";
+			sed -i'.mkmoded' -e "s/$pgconf_search/$pgconf_text/g" "$pg_conf";
+		elif grep "$pgconf_search" "$pg_conf"; then
+			echo "	skip"
 		else
 			echo "Please edit postgresql.conf to set [listen_addresses = '$docker_host_ip'] by your hand."
 			read -r -p "Enter the editor command and press Enter key > " -e -i "nano" editorcmd
@@ -529,6 +531,8 @@ if [ $method != "systemd" ]; then
 			_EOF
 			if ! grep "include /etc/redis/docker.conf" /etc/redis/redis.conf; then
 				echo "include /etc/redis/docker.conf" >> /etc/redis/redis.conf;
+			else
+				echo "	skip"
 			fi
 		else
 			echo "Couldn't find /etc/redis/redis.conf."
@@ -538,7 +542,7 @@ if [ $method != "systemd" ]; then
 			read -r -p "Press Enter key to continue> "
 		fi
 
-		systemctl restart redis-servrer;
+		systemctl restart redis-server;
 	fi
 #endregion
 fi
@@ -621,12 +625,79 @@ MKEOF
 #endregion
 
 if $nginx_local; then
-	tput setaf 3;
-	echo "Process: copy and apply nginx config;"
-	tput setaf 7;
-	sed -e "s/example.tld/$host/g" "/home/$misskey_user/$misskey_directory/docs/examples/misskey.nginx" > /etc/nginx/conf.d/misskey.conf;
-	nginx -t;
-	systemctl restart nginx;
+tput setaf 3;
+echo "Process: copy and apply nginx config;"
+tput setaf 7;
+
+cat > /etc/nginx/conf.d/misskey.conf << NGEOF
+# nginx configuration for Misskey
+# Created by joinmisskey/bash-install v$version
+
+# For WebSocket
+map \$http_upgrade \$connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=cache1:16m max_size=1g inactive=720m use_temp_path=off;
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name $host;
+
+    # For SSL domain validation
+    root /var/www/html;
+    location /.well-known/acme-challenge/ { allow all; }
+    location /.well-known/pki-validation/ { allow all; }
+    location / { return 301 https://\$server_name\$request_uri; }
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name $host;
+    ssl_session_cache shared:ssl_session_cache:10m;
+
+    # To use Let's Encrypt certificate
+    ssl_certificate     /etc/letsencrypt/live/$host/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$host/privkey.pem;
+
+    # SSL protocol settings
+    ssl_protocols TLSv1.2;
+    ssl_ciphers ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:AES128-SHA;
+    ssl_prefer_server_ciphers on;
+
+    # Change to your upload limit
+    client_max_body_size 80m;
+
+    # Proxy to Node
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host \$host;
+        proxy_http_version 1.1;
+        proxy_redirect off;
+
+$($cloudflare && echo "        # If it's behind another reverse proxy or CDN, remove the following.")
+$($cloudflare && echo "        proxy_set_header X-Real-IP \$remote_addr;")
+$($cloudflare && echo "        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;")
+$($cloudflare && echo "        proxy_set_header X-Forwarded-Proto https;")
+$($cloudflare && echo "")
+        # For WebSocket
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$connection_upgrade;
+
+        # Cache settings
+        proxy_cache cache1;
+        proxy_cache_lock on;
+        proxy_cache_use_stale updating;
+        add_header X-Cache \$upstream_cache_status;
+    }
+}
+NGEOF
+
+nginx -t;
+systemctl restart nginx;
 fi
 
 if [ $method == "systemd" ]; then
