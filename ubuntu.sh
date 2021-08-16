@@ -331,6 +331,7 @@ if cut -d: -f1 /etc/passwd | grep -q -x "$misskey_user"; then
 else
 	useradd -m -U -s /bin/bash "$misskey_user";
 fi
+echo "user=\"$misskey_user\"" >> /root/.misskey.env
 m_uid=$(id -u "$misskey_user")
 
 tput setaf 3;
@@ -484,11 +485,11 @@ server {
         proxy_http_version 1.1;
         proxy_redirect off;
 
-$($cloudflare && echo "        # If it's behind another reverse proxy or CDN, remove the following.")
-$($cloudflare && echo "        proxy_set_header X-Real-IP \$remote_addr;")
-$($cloudflare && echo "        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;")
-$($cloudflare && echo "        proxy_set_header X-Forwarded-Proto https;")
-$($cloudflare && echo "")
+$($cloudflare || echo "        # If it's behind another reverse proxy or CDN, remove the following.")
+$($cloudflare || echo "        proxy_set_header X-Real-IP \$remote_addr;")
+$($cloudflare || echo "        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;")
+$($cloudflare || echo "        proxy_set_header X-Forwarded-Proto https;")
+
         # For WebSocket
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection \$connection_upgrade;
@@ -662,12 +663,13 @@ fi
 MKEOF
 fi
 
-tput setaf 3;
-echo "Process: create default.yml;"
-tput setaf 7;
 su "$misskey_user" << MKEOF
 set -eu;
 cd ~;
+
+tput setaf 3;
+echo "Process: create default.yml;"
+tput setaf 7;
 
 cat > "$misskey_directory/.config/default.yml" << _EOF
 url: https://$host
@@ -772,20 +774,56 @@ sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run
 #endregion
 fi
 
-if [ $method != "systemd" ]; then
-	tput setaf 3;
-	echo "Process: docker run;"
-	tput setaf 7;
-	docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro -t "$docker_hub_repository");
-	sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker logs -f $docker_container;
-fi
-
 echo "";
+
+if [ $method != "systemd" ]; then
+tput setaf 2;
+tput bold;
+echo "ALL MISSKEY INSTALLATION PROCESSES ARE COMPLETE!";
+echo "Now all we need to do is run docker run."
+tput setaf 7;
+echo "Watch the screen."
+echo "When it shows \"Now listening on port $misskey_port on https://$host\""
+echo "press Ctrl+C to exit logs and jump to https://$host/ and continue setting up your instance.";
+echo ""
+echo "This script version is v$version.";
+echo "Please follow @joinmisskey@misskey.io to address bugs and updates.";
+echo ""
+read -r -p "Press Enter key to execute docker run> "
+echo ""
+tput setaf 3;
+echo "Process: docker run;"
+tput setaf 7;
+docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro -t "$docker_hub_repository");
+echo $docker_container
+su "$misskey_user" << MKEOF
+set -eu;
+cd ~;
+
+tput setaf 3;
+echo "Process: create .misskey-docker.env;"
+tput setaf 7;
+
+cat > ".misskey-docker.env" << _EOF
+host="$host"
+port=$misskey_port
+dir="$misskey_directory"
+misskey_localhost="$misskey_localhost"
+docker_host_ip=$docker_host_ip
+repo="$docker_hub_repository"
+container="$docker_container"
+_EOF
+MKEOF
+
+sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker logs -f $docker_container;
+
+else
 
 tput setaf 2;
 tput bold;
 echo "ALL MISSKEY INSTALLATION PROCESSES ARE COMPLETE!";
-echo "Jump to https://$host/ and continue set up.";
+echo "Jump to https://$host/ and continue setting up your instance.";
 tput setaf 7;
 echo "This script version is v$version.";
 echo "Please follow @joinmisskey@misskey.io to address bugs and updates.";
+fi
