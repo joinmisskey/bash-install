@@ -615,9 +615,11 @@ if [ $method != "systemd" ]; then
 			fi
 		else
 			echo "Couldn't find /etc/redis/redis.conf."
-			echo "Modify redis config like following in another shell."
+			echo "Please modify redis config like following in another shell."
+			echo ""
 			echo "bind $docker_host_ip"
 			echo "requirepass $redis_pass"
+			echo ""
 			read -r -p "Press Enter key to continue> "
 		fi
 
