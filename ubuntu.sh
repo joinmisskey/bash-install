@@ -1,5 +1,5 @@
 #!/bin/bash
-version=0.2.0;
+version=1.0.0;
 
 tput setaf 4;
 echo "";
@@ -40,38 +40,80 @@ else
 fi
 
 tput setaf 2;
-echo "Check: Memory;"
-
-mem_all=`free -t --si -g | tail -n 1`;
-mem_allarr=(${mem_all//\\t/ });
-
-if [ ${mem_allarr[1]} -ge 2 ]; then
-	tput setaf 7;
-	echo "	OK. This computer has ${mem_allarr[1]}GB RAM.";
-else
-	tput setaf 1;
-	echo "	NG. This computer doesn't have enough RAM (>= 2GB, Current ${mem_allarr[1]}GB).";
-	tput setaf 7;
-	mem_swap=`free | tail -n 1`;
-	mem_swaparr=(${mem_swap//\\t/ });
-	if [ ${mem_swaparr[1]} -eq 0 ]; then
-		echo "	Swap will be made (1M x 1536).";
-		dd if=/dev/zero of=/swap bs=1M count=1536;
-		mkswap /swap;
-		swapon /swap;
-		echo "/swapfile none swap sw 0" >> /etc/fstab;
-		free -t;
-	else
-		echo "  Add more swaps!";
+echo "Check: arch;";
+case `uname -m` in
+	x86_64)
+		tput setaf 7;
+		echo "	x86_64 (amd64)";
+		arch=amd64;
+		;;
+	aarch64)
+		tput setaf 7;
+		echo "	aarch64 (arm64)";
+		arch=arm64;
+		;;
+	*)
+		tput setaf 1;
+		echo "	NG. `uname -m` is unsupported architecture.";
 		exit 1;
-	fi
-fi
+esac
 #endregion
 
 #region user input
+#region method
 tput setaf 3;
-echo "Misskey version setting";
+echo "";
+echo "Install Method";
 tput setaf 7;
+echo "Do you use Docker to run Misskey?:";
+echo "Y = To use Docker / N = To use systemd"
+read -p "[Y/n] > " yn
+case "$yn" in
+	[Nn]|[Nn][Oo])
+		echo "Use Docker.";
+		method=docker;
+
+		echo "Determine the local IP of this computer as docker host.";
+		echo "The IPs that are supposed to be available are as follows (the result of hostname -I)";
+		echo "`hostname -I`"
+		read -p "> " -e -i "`hostname -I | cut -f1 -d' '`" docker_host_ip;
+
+		echo "The host name of docker host to bind with 'docker run --add-host='.";
+		read -p "> " -e -i "docker_host" misskey_localhost;
+		;;
+	*)
+		echo "Use Systemd.";
+		method=systemd;
+		misskey_localhost=localhost
+		;;
+esac
+#endregion
+
+if [ $method == "docker" ]; then
+
+echo "Do you use image from Docker Hub?:";
+echo "Y = To use Docker Hub image / N = To build Misskey in this machine"
+read -p "[Y/n] > " yn
+case "$yn" in
+	[Nn]|[Nn][Oo])
+		echo "Build docker manually.";
+		method=docker;
+		;;
+	*)
+		echo "Use Docker Hub image.";
+		method=docker_hub;
+		echo "Enter repository:tag of Docker Hub image:"
+		read -p "> " -e -i "misskey/misskey:latest" docker_hub_repository;
+		;;
+esac
+
+fi
+
+tput setaf 3;
+echo "Misskey setting";
+tput setaf 7;
+
+if [ $method != "docker_hub" ]; then
 
 echo "Repository url where you want to install:"
 read -p "> " -e -i "https://github.com/misskey-dev/misskey.git" repository;
@@ -79,6 +121,8 @@ echo "The name of a new directory to clone:"
 read -p "> " -e -i "misskey" misskey_directory;
 echo "Branch or Tag"
 read -p "> " -e -i "master" branch;
+
+fi
 
 tput setaf 3;
 echo "";
@@ -177,15 +221,15 @@ case "$yn" in
 		db_local=false;
 
 		echo "Database host: ";
-		read -p "> " -e -i "localhost" db_host;
+		read -p "> " -e -i "$misskey_localhost" db_host;
 		echo "Database port:";
 		read -p "> " -e -i "5432" db_port;
 		;;
 	*)
-		echo "PostgreSQL will be installed on this computer at localhost:5432.";
+		echo "PostgreSQL will be installed on this computer at $misskey_localhost:5432.";
 		db_local=true;
 
-		db_host=localhost;
+		db_host=$misskey_localhost;
 		db_port=5432;
 		;;
 esac
@@ -211,19 +255,22 @@ case "$yn" in
 		echo "You should prepare Redis manually.";
 		redis_local=false;
 
-		echo "Redis host: ";
-		read -p "> " -e -i "localhost" redis_host;
+		echo "Redis host:";
+		read -p "> " -e -i "$misskey_localhost" redis_host;
 		echo "Redis port:";
 		read -e -p "> " -e -i "6379" redis_port;
 		;;
 	*)
-		echo "Redis will be installed on this computer at localhost:6379.";
+		echo "Redis will be installed on this computer at $misskey_localhost:6379.";
 		redis_local=true;
 
-		redis_host=localhost;
+		redis_host=$misskey_localhost;
 		redis_port=6379;
 		;;
 esac
+
+echo "Redis password:";
+read -p "> " redis_pass;
 #endregion
 
 #region syslog
@@ -232,7 +279,7 @@ echo "";
 echo "Syslog setting";
 tput setaf 7;
 echo "Syslog host: ";
-read -p "> " -e -i "localhost" syslog_host;
+read -p "> " -e -i "$misskey_localhost" syslog_host;
 echo "Syslog port: ";
 read -p "> " -e -i "514" syslog_port;
 #endregion
@@ -244,6 +291,32 @@ echo "";
 #endregion
 
 set -eu;
+
+tput setaf 2;
+echo "Check: Memory;"
+mem_all=`free -t --si -g | tail -n 1`;
+mem_allarr=(${mem_all//\\t/ });
+if [ ${mem_allarr[1]} -ge 2 ]; then
+	tput setaf 7;
+	echo "	OK. This computer has ${mem_allarr[1]}GB RAM.";
+else
+	tput setaf 1;
+	echo "	NG. This computer doesn't have enough RAM (>= 2GB, Current ${mem_allarr[1]}GB).";
+	tput setaf 7;
+	mem_swap=`free | tail -n 1`;
+	mem_swaparr=(${mem_swap//\\t/ });
+	if [ ${mem_swaparr[1]} -eq 0 ]; then
+		echo "	Swap will be made (1M x 1536).";
+		dd if=/dev/zero of=/swap bs=1M count=1536;
+		mkswap /swap;
+		swapon /swap;
+		echo "/swap none swap sw 0" >> /etc/fstab;
+		free -t;
+	else
+		echo "  Add more swaps!";
+		exit 1;
+	fi
+fi
 
 tput setaf 3;
 echo "Process: add misskey user ($misskey_user);";
@@ -258,7 +331,7 @@ tput setaf 3;
 echo "Process: apt install #1;";
 tput setaf 7;
 apt update -y;
-apt install -y curl gnupg2 ca-certificates lsb-release git build-essential software-properties-common ffmpeg`$nginx_local && echo " certbot"``$cloudflare && echo " python3-certbot-dns-cloudflare"`;
+apt install -y curl nano gnupg2 ca-certificates lsb-release git build-essential software-properties-common ffmpeg`$nginx_local && echo " certbot"``$cloudflare && echo " python3-certbot-dns-cloudflare"`;
 
 if $nginx_local; then
 	tput setaf 3;
@@ -299,10 +372,12 @@ if $nginx_local; then
 	sudo mv /tmp/nginx_signing.key /etc/apt/trusted.gpg.d/nginx_signing.asc;
 fi
 
-tput setaf 3;
-echo "Process: prepare node.js;"
-tput setaf 7;
-curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -;
+if [ $method == "systemd" ]; then
+	tput setaf 3;
+	echo "Process: prepare node.js;"
+	tput setaf 7;
+	curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -;
+fi
 
 if $redis_local; then
 	tput setaf 3;
@@ -311,16 +386,20 @@ if $redis_local; then
 	add-apt-repository ppa:chris-lea/redis-server -y;
 fi
 
-tput setaf 3;
-echo "Process: apt install #2;"
-tput setaf 7;
-apt update -y;
-apt install -y nodejs`$redis_local && echo " redis-server"``$nginx_local && echo " nginx"`;
+if [ $method == "systemd" ] || $redis_local || $nginx_local; then
+	tput setaf 3;
+	echo "Process: apt install #2;"
+	tput setaf 7;
+	apt update -y;
+	apt install -y`[ $method == "systemd" ] && echo " nodejs"``$redis_local && echo " redis-server"``$nginx_local && echo " nginx"`;
+fi
 
 echo "Display: Versions;"
-echo "node";
-node -v;
-if $nginx_local; then
+if [ $method == "systemd" ]; then
+	echo "node";
+	node -v;
+fi
+if $redis_local; then
 	echo "redis";
 	redis-server --version;
 fi
@@ -373,6 +452,12 @@ su $misskey_user << MKEOF
 set -eu;
 cd ~;
 
+MKEOF
+
+if [$method != "docker_hub"]; then
+su $misskey_user << MKEOF
+set -eu;
+cd ~;
 tput setaf 3;
 echo "Process: git clone;";
 tput setaf 7;
@@ -384,12 +469,38 @@ if [ -e ./$misskey_directory ]; then
 	fi
 fi
 git clone -b "$branch" --depth 1 "$repository" $misskey_directory;
-cd $misskey_directory;
+MKEOF
+
+else
+
+su $misskey_user << MKEOF
+set -eu;
+cd ~;
+if [ -e ./$misskey_directory ]; then
+	if [ -f ./$misskey_directory ]; then
+		rm ./$misskey_directory;
+	fi
+else
+	mkdir ./$misskey_directory
+fi
+if [ -e ./$misskey_directory/.config ]; then
+	if [ -f ./$misskey_directory/.config ]; then
+		rm ./$misskey_directory/.config;
+	fi
+else
+	mkdir ./$misskey_directory/.config
+fi
+MKEOF
+fi
 
 tput setaf 3;
 echo "Process: create default.yml;"
 tput setaf 7;
-cat > .config/default.yml << _EOF
+su $misskey_user << MKEOF
+set -eu;
+cd ~;
+
+cat > $misskey_directory/.config/default.yml << _EOF
 url: https://$host
 port: $misskey_port
 
@@ -403,8 +514,9 @@ db:
 
 # Redis
 redis:
-  host: localhost
-  port: 6379
+  host: '$redis_host'
+  port: $redis_port
+  pass: '$redis_pass'
 
 # ID type
 id: 'aid'
@@ -414,7 +526,6 @@ syslog:
   host: '$syslog_host'
   port: '$syslog_port'
 _EOF
-
 MKEOF
 #endregion
 
