@@ -787,7 +787,7 @@ echo "ALL MISSKEY INSTALLATION PROCESSES ARE COMPLETE!";
 echo "Now all we need to do is run docker run."
 tput setaf 7;
 echo "Watch the screen."
-echo "When it shows \"Now listening on port $misskey_port on https://$host\""
+echo "When it shows \"Now listening on port $misskey_port on https://$host\","
 echo "press Ctrl+C to exit logs and jump to https://$host/ and continue setting up your instance.";
 echo ""
 echo "This script version is v$version.";
