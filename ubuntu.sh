@@ -469,19 +469,20 @@ if [ $method != "systemd" ]; then
 
 	systemctl disable --now docker.service docker.socket
 	loginctl enable-linger "$misskey_user"
-su "$misskey_user" << MKEOF
-set -eu;
-cd ~;
-export XDG_RUNTIME_DIR=/run/user/\$UID
-dockerd-rootless-setuptool.sh install
 
-export DOCKER_HOST=unix://\$XDG_RUNTIME_DIR/docker.sock
+	su "$misskey_user" <<-MKEOF
+	set -eu;
+	cd ~;
+	export XDG_RUNTIME_DIR=/run/user/\$UID
+	dockerd-rootless-setuptool.sh install
 
-tput setaf 2;
-echo "Check: docker setup;";
-tput setaf 7;
-docker ps
-MKEOF
+	export DOCKER_HOST=unix://\$XDG_RUNTIME_DIR/docker.sock
+
+	tput setaf 2;
+	echo "Check: docker setup;";
+	tput setaf 7;
+	docker ps
+	MKEOF
 	#endregion
 
 	#region modify postgres confs
@@ -517,10 +518,10 @@ MKEOF
 
 		if [ -f /etc/redis/redis.conf ]; then
 			sed -i'.mkmoded' -e "s/$pgconf_search/listen_addresses = '$docker_host_ip' /g" "$pg_conf";
-cat > /etc/redis/docker.conf << _EOF
-bind $docker_host_ip
-requirepass $redis_pass
-_EOF
+			cat > /etc/redis/docker.conf <<-_EOF
+			bind $docker_host_ip
+			requirepass $redis_pass
+			_EOF
 			if ! grep "include /etc/redis/docker.conf" /etc/redis/redis.conf; then
 				echo "include /etc/redis/docker.conf" >> /etc/redis/redis.conf;
 			fi
@@ -544,14 +545,14 @@ cd ~;
 tput setaf 3;
 echo "Process: git clone;";
 tput setaf 7;
-if [ -e ./$misskey_directory ]; then
-	if [ -f ./$misskey_directory ]; then
-		rm ./$misskey_directory;
+if [ -e "./$misskey_directory" ]; then
+	if [ -f "./$misskey_directory" ]; then
+		rm "./$misskey_directory";
 	else
-		rm -rf ./$misskey_directory;
+		rm -rf "./$misskey_directory";
 	fi
 fi
-git clone -b "$branch" --depth 1 "$repository" $misskey_directory;
+git clone -b "$branch" --depth 1 "$repository" "$misskey_directory";
 MKEOF
 
 else
@@ -559,19 +560,19 @@ else
 su "$misskey_user" << MKEOF
 set -eu;
 cd ~;
-if [ -e ./$misskey_directory ]; then
-	if [ -f ./$misskey_directory ]; then
-		rm ./$misskey_directory;
+if [ -e "./$misskey_directory" ]; then
+	if [ -f "./$misskey_directory" ]; then
+		rm "./$misskey_directory";
 	fi
 else
-	mkdir ./$misskey_directory
+	mkdir "./$misskey_directory"
 fi
-if [ -e ./$misskey_directory/.config ]; then
-	if [ -f ./$misskey_directory/.config ]; then
-		rm ./$misskey_directory/.config;
+if [ -e "./$misskey_directory/.config" ]; then
+	if [ -f "./$misskey_directory/.config" ]; then
+		rm "./$misskey_directory/.config";
 	fi
 else
-	mkdir ./$misskey_directory/.config
+	mkdir "./$misskey_directory/.config"
 fi
 MKEOF
 fi
@@ -583,7 +584,7 @@ su "$misskey_user" << MKEOF
 set -eu;
 cd ~;
 
-cat > $misskey_directory/.config/default.yml << _EOF
+cat > "$misskey_directory/.config/default.yml" << _EOF
 url: https://$host
 port: $misskey_port
 
@@ -616,7 +617,7 @@ if $nginx_local; then
 	tput setaf 3;
 	echo "Process: copy and apply nginx config;"
 	tput setaf 7;
-	sed -e "s/example.tld/$host/g" "/home/misskey/$misskey_directory/docs/examples/misskey.nginx" > /etc/nginx/conf.d/misskey.conf;
+	sed -e "s/example.tld/$host/g" "/home/$misskey_user/$misskey_directory/docs/examples/misskey.nginx" > /etc/nginx/conf.d/misskey.conf;
 	nginx -t;
 	systemctl restart nginx;
 fi
@@ -626,7 +627,7 @@ if [ $method == "systemd" ]; then
 #region work with misskey user
 su "$misskey_user" << MKEOF;
 set -eu;
-cd ~/$misskey_directory;
+cd "~/$misskey_directory";
 
 tput setaf 3;
 echo "Process: install npm packages;"
@@ -667,7 +668,7 @@ Description=Misskey daemon
 Type=simple
 User=$misskey_user
 ExecStart=$(command -v npm) start
-WorkingDirectory=/home/misskey/$misskey_directory
+WorkingDirectory=/home/$misskey_user/$misskey_directory
 Environment="NODE_ENV=production"
 TimeoutSec=60
 StandardOutput=syslog

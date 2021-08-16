@@ -1,6 +1,7 @@
 ## v1.0.0
 - MisskeyのDockerでの実行に対応。  
-- redisの設定が反映されていないのを修正。
+- 一部設定が反映されていないのを修正。
+  * redisのホスト・ポートとかいろいろ
 - /etc/fstabのswap設定が間違っていたのを修正（/swapfile→/swap）
 
 ## v0.2.0
