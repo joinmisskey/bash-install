@@ -331,6 +331,7 @@ if cut -d: -f1 /etc/passwd | grep -q -x "$misskey_user"; then
 else
 	useradd -m -U -s /bin/bash "$misskey_user";
 fi
+m_uid=$(id -u "$misskey_user")
 
 tput setaf 3;
 echo "Process: apt install #1;";
@@ -474,10 +475,11 @@ if [ $method != "systemd" ]; then
 	su "$misskey_user" <<-MKEOF
 	set -eu;
 	cd ~;
-	export XDG_RUNTIME_DIR=/run/user/\$UID
+	export XDG_RUNTIME_DIR=/run/user/$m_uid
+	echo $XDG_RUNTIME_DIR
 	dockerd-rootless-setuptool.sh install
 
-	export DOCKER_HOST=unix://\$XDG_RUNTIME_DIR/docker.sock
+	export DOCKER_HOST=unix:///run/user/$m_uid/docker.sock
 
 	tput setaf 2;
 	echo "Check: docker setup;";
@@ -508,6 +510,8 @@ if [ $method != "systemd" ]; then
 			read -r -p "Enter the editor command and press Enter key > " -e -i "nano" editorcmd
 			$editorcmd "$pg_conf";
 		fi
+
+		systemctl restart postgresql;
 	fi
 	#endregion
 
@@ -533,6 +537,8 @@ if [ $method != "systemd" ]; then
 			echo "requirepass $redis_pass"
 			read -r -p "Press Enter key to continue> "
 		fi
+
+		systemctl restart redis-servrer;
 	fi
 #endregion
 fi
@@ -693,16 +699,7 @@ tput setaf 3;
 echo "Process: build docker image;"
 tput setaf 7;
 
-#region work with misskey user
-su "$misskey_user" << MKEOF;
-set -eu;
-cd ~/$misskey_directory;
-export XDG_RUNTIME_DIR=/run/user/\$UID
-export DOCKER_HOST=unix://\$XDG_RUNTIME_DIR/docker.sock
-
-docker build -t $docker_hub_repository ./;
-MKEOF
-#endregion
+sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_hub_repository "/home/$misskey_user/$misskey_directory"
 #endregion
 fi
 
@@ -710,7 +707,6 @@ if [ $method != "systemd" ]; then
 	tput setaf 3;
 	echo "Process: docker run;"
 	tput setaf 7;
-	m_uid=$(id -u "$misskey_user")
 	docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -p $misskey_port:$misskey_port --add-host=host:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro -d -t "$docker_hub_repository");
 	sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker logs -f $docker_container;
 fi
