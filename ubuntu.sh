@@ -431,21 +431,95 @@ if $redis_local; then
 	systemctl enable redis-server;
 fi
 if $nginx_local; then
-	tput setaf 3;
-	echo "Process: daemon activate: nginx;"
-	tput setaf 7;
-	systemctl start nginx;
-	systemctl enable nginx;
-	tput setaf 2;
-	echo "Check: localhost returns nginx;";
-	tput setaf 7;
-	if curl http://localhost | grep -q nginx; then
-		echo "	OK.";
-	else
-		tput setaf 1;
-		echo "	NG.";
-		exit 1;
-	fi
+tput setaf 3;
+echo "Process: create nginx config;"
+tput setaf 7;
+
+cat > /etc/nginx/conf.d/misskey.conf << NGEOF
+# nginx configuration for Misskey
+# Created by joinmisskey/bash-install v$version
+
+# For WebSocket
+map \$http_upgrade \$connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=cache1:16m max_size=1g inactive=720m use_temp_path=off;
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name $host;
+
+    # For SSL domain validation
+    root /var/www/html;
+    location /.well-known/acme-challenge/ { allow all; }
+    location /.well-known/pki-validation/ { allow all; }
+    location / { return 301 https://\$server_name\$request_uri; }
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name $host;
+    ssl_session_cache shared:ssl_session_cache:10m;
+
+    # To use Let's Encrypt certificate
+    ssl_certificate     /etc/letsencrypt/live/$host/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$host/privkey.pem;
+
+    # SSL protocol settings
+    ssl_protocols TLSv1.2;
+    ssl_ciphers ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:AES128-SHA;
+    ssl_prefer_server_ciphers on;
+
+    # Change to your upload limit
+    client_max_body_size 80m;
+
+    # Proxy to Node
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host \$host;
+        proxy_http_version 1.1;
+        proxy_redirect off;
+
+$($cloudflare && echo "        # If it's behind another reverse proxy or CDN, remove the following.")
+$($cloudflare && echo "        proxy_set_header X-Real-IP \$remote_addr;")
+$($cloudflare && echo "        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;")
+$($cloudflare && echo "        proxy_set_header X-Forwarded-Proto https;")
+$($cloudflare && echo "")
+        # For WebSocket
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$connection_upgrade;
+
+        # Cache settings
+        proxy_cache cache1;
+        proxy_cache_lock on;
+        proxy_cache_use_stale updating;
+        add_header X-Cache \$upstream_cache_status;
+    }
+}
+NGEOF
+
+nginx -t;
+
+tput setaf 3;
+echo "Process: daemon activate: nginx;"
+tput setaf 7;
+
+systemctl restart nginx;
+systemctl enable nginx;
+tput setaf 2;
+echo "Check: localhost returns nginx;";
+tput setaf 7;
+if curl http://localhost | grep -q nginx; then
+	echo "	OK.";
+else
+	tput setaf 1;
+	echo "	NG.";
+	exit 1;
+fi
 
 fi
 
@@ -505,7 +579,7 @@ if [ $method != "systemd" ]; then
 		pgconf_text="listen_addresses = '$docker_host_ip'"
 		if grep "$pgconf_search" "$pg_conf"; then
 			sed -i'.mkmoded' -e "s/$pgconf_search/$pgconf_text/g" "$pg_conf";
-		elif grep "$pgconf_search" "$pg_conf"; then
+		elif grep "$pgconf_text" "$pg_conf"; then
 			echo "	skip"
 		else
 			echo "Please edit postgresql.conf to set [listen_addresses = '$docker_host_ip'] by your hand."
@@ -624,82 +698,6 @@ _EOF
 MKEOF
 #endregion
 
-if $nginx_local; then
-tput setaf 3;
-echo "Process: copy and apply nginx config;"
-tput setaf 7;
-
-cat > /etc/nginx/conf.d/misskey.conf << NGEOF
-# nginx configuration for Misskey
-# Created by joinmisskey/bash-install v$version
-
-# For WebSocket
-map \$http_upgrade \$connection_upgrade {
-    default upgrade;
-    ''      close;
-}
-
-proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=cache1:16m max_size=1g inactive=720m use_temp_path=off;
-
-server {
-    listen 80;
-    listen [::]:80;
-    server_name $host;
-
-    # For SSL domain validation
-    root /var/www/html;
-    location /.well-known/acme-challenge/ { allow all; }
-    location /.well-known/pki-validation/ { allow all; }
-    location / { return 301 https://\$server_name\$request_uri; }
-}
-
-server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
-    server_name $host;
-    ssl_session_cache shared:ssl_session_cache:10m;
-
-    # To use Let's Encrypt certificate
-    ssl_certificate     /etc/letsencrypt/live/$host/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$host/privkey.pem;
-
-    # SSL protocol settings
-    ssl_protocols TLSv1.2;
-    ssl_ciphers ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:AES128-SHA;
-    ssl_prefer_server_ciphers on;
-
-    # Change to your upload limit
-    client_max_body_size 80m;
-
-    # Proxy to Node
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_set_header Host \$host;
-        proxy_http_version 1.1;
-        proxy_redirect off;
-
-$($cloudflare && echo "        # If it's behind another reverse proxy or CDN, remove the following.")
-$($cloudflare && echo "        proxy_set_header X-Real-IP \$remote_addr;")
-$($cloudflare && echo "        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;")
-$($cloudflare && echo "        proxy_set_header X-Forwarded-Proto https;")
-$($cloudflare && echo "")
-        # For WebSocket
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection \$connection_upgrade;
-
-        # Cache settings
-        proxy_cache cache1;
-        proxy_cache_lock on;
-        proxy_cache_use_stale updating;
-        add_header X-Cache \$upstream_cache_status;
-    }
-}
-NGEOF
-
-nginx -t;
-systemctl restart nginx;
-fi
-
 if [ $method == "systemd" ]; then
 #region systemd
 #region work with misskey user
@@ -778,7 +776,7 @@ if [ $method != "systemd" ]; then
 	tput setaf 3;
 	echo "Process: docker run;"
 	tput setaf 7;
-	docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -p $misskey_port:$misskey_port --add-host=host:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro -d -t "$docker_hub_repository");
+	docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro -t "$docker_hub_repository");
 	sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker logs -f $docker_container;
 fi
 
