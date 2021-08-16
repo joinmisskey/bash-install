@@ -59,7 +59,7 @@ else
 		dd if=/dev/zero of=/swap bs=1M count=1536;
 		mkswap /swap;
 		swapon /swap;
-		echo "/swapfile none swap sw 0" >> /etc/fstab;
+		echo "/swap none swap sw 0" >> /etc/fstab;
 		free -t;
 	else
 		echo "  Add more swaps!";
