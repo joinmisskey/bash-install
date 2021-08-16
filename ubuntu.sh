@@ -789,7 +789,7 @@ echo ""
 echo "This script version is v$version.";
 echo "Please follow @joinmisskey@misskey.io to address bugs and updates.";
 echo ""
-read -r -p "Press Enter key to execute docker run> "
+read -r -p "Press Enter key to execute docker run> ";
 echo ""
 tput setaf 3;
 echo "Process: docker run;"
