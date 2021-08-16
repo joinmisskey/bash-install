@@ -182,7 +182,7 @@ case "$yn" in
 				echo "OK, you don't use Cloudflare.";
 				echo "Let's encrypt certificate will be installed using the method without Cloudflare.";
 				echo "";
-				echo "Make sure that your DNS is set up.";
+				echo "Make sure that your DNS is configured to this machine.";
 				cloudflare=false
 
 				echo "";
@@ -192,6 +192,9 @@ case "$yn" in
 			*)
 				cloudflare=true
 				echo "OK, you want to use Cloudflare. Let's set up Cloudflare.";
+				echo "";
+				echo "Make sure that Cloudflare DNS is configured and is in proxy mode.";
+				echo "";
 				echo "Enter Email address you registered to Cloudflare:";
 				read -r -p "> " cf_mail;
 				echo "Open https://dash.cloudflare.com/profile/api-tokens to get Global API Key and enter here it.";
@@ -546,19 +549,20 @@ if [ $method != "systemd" ]; then
 
 	systemctl disable --now docker.service docker.socket
 	loginctl enable-linger "$misskey_user"
-
+	sleep 5
 	su "$misskey_user" <<-MKEOF
 	set -eu;
 	cd ~;
-	export XDG_RUNTIME_DIR=/run/user/$m_uid
-	dockerd-rootless-setuptool.sh install
+	export XDG_RUNTIME_DIR=/run/user/$m_uid;
+	export DOCKER_HOST=unix:///run/user/$m_uid/docker.sock;
+	systemctl --user --no-pager
 
-	export DOCKER_HOST=unix:///run/user/$m_uid/docker.sock
+	dockerd-rootless-setuptool.sh install
 
 	tput setaf 2;
 	echo "Check: docker setup;";
 	tput setaf 7;
-	docker ps
+	docker ps;
 	MKEOF
 	#endregion
 
