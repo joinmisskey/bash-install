@@ -118,13 +118,13 @@ if [ $method == "docker" ]; then
 			[Nn]|[Nn][Oo])
 				echo "Build docker image (local/misskey:latest).";
 				method=docker;
-				docker_hub_repository="local/misskey:latest"
+				docker_repository="local/misskey:latest"
 				;;
 			*)
 				echo "Use Docker Hub image.";
 				method=docker_hub;
 				echo "Enter repository:tag of Docker Hub image:"
-				read -r -p "> " -e -i "misskey/misskey:latest" docker_hub_repository;
+				read -r -p "> " -e -i "misskey/misskey:latest" docker_repository;
 				;;
 		esac
 	else
@@ -795,7 +795,7 @@ tput setaf 3;
 echo "Process: build docker image;"
 tput setaf 7;
 
-sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_hub_repository "/home/$misskey_user/$misskey_directory"
+sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_repository "/home/$misskey_user/$misskey_directory"
 #endregion
 fi
 
@@ -819,7 +819,7 @@ echo ""
 tput setaf 3;
 echo "Process: docker run;"
 tput setaf 7;
-docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro -t "$docker_hub_repository");
+docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro -t "$docker_repository");
 echo $docker_container
 su "$misskey_user" << MKEOF
 set -eu;
@@ -831,12 +831,12 @@ tput setaf 7;
 
 cat > ".misskey-docker.env" << _EOF
 host="$host"
-port=$misskey_port
-dir="$misskey_directory"
+misskey_port=$misskey_port
+misskey_directory="$misskey_directory"
 misskey_localhost="$misskey_localhost"
 docker_host_ip=$docker_host_ip
-repo="$docker_hub_repository"
-container="$docker_container"
+docker_repository="$docker_repository"
+docker_container="$docker_container"
 version="$version"
 _EOF
 MKEOF
@@ -844,6 +844,23 @@ MKEOF
 sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker logs -f $docker_container;
 
 else
+
+su "$misskey_user" << MKEOF
+set -eu;
+cd ~;
+
+tput setaf 3;
+echo "Process: create .misskey-docker.env;"
+tput setaf 7;
+
+cat > ".misskey-docker.env" << _EOF
+host="$host"
+misskey_port=$misskey_port
+misskey_directory="$misskey_directory"
+misskey_localhost="$misskey_localhost"
+version="$version"
+_EOF
+MKEOF
 
 tput setaf 2;
 tput bold;
