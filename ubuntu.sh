@@ -1,4 +1,23 @@
 #!/bin/bash
+# Copyright 2021 aqz/tamaina, joinmisskey
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
+# and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+#
+# The above copyright notice and this permission notice
+# shall be included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
 version="1.0.0-beta";
 
 tput setaf 4;
@@ -334,8 +353,8 @@ if cut -d: -f1 /etc/passwd | grep -q -x "$misskey_user"; then
 else
 	useradd -m -U -s /bin/bash "$misskey_user";
 fi
-echo "user=\"$misskey_user\"" > /root/.misskey.env
-echo "version=\"$version\"" > /root/.misskey.env
+echo "misskey_user=\"$misskey_user\"" > /root/.misskey.env
+echo "version=\"$version\"" >> /root/.misskey.env
 m_uid=$(id -u "$misskey_user")
 
 tput setaf 3;
@@ -343,6 +362,83 @@ echo "Process: apt install #1;";
 tput setaf 7;
 apt update -y;
 apt install -y curl nano gnupg2 apt-transport-https ca-certificates lsb-release git build-essential software-properties-common ffmpeg uidmap$($nginx_local && echo " certbot")$($cloudflare && echo " python3-certbot-dns-cloudflare");
+
+#region work with misskey user
+if [ $method != "docker_hub" ]; then
+su "$misskey_user" << MKEOF
+set -eu;
+cd ~;
+tput setaf 3;
+echo "Process: git clone;";
+tput setaf 7;
+if [ -e "./$misskey_directory" ]; then
+	if [ -f "./$misskey_directory" ]; then
+		rm "./$misskey_directory";
+	else
+		rm -rf "./$misskey_directory";
+	fi
+fi
+git clone -b "$branch" --depth 1 "$repository" "$misskey_directory";
+MKEOF
+
+else
+
+su "$misskey_user" << MKEOF
+set -eu;
+cd ~;
+if [ -e "./$misskey_directory" ]; then
+	if [ -f "./$misskey_directory" ]; then
+		rm "./$misskey_directory";
+	fi
+else
+	mkdir "./$misskey_directory"
+fi
+if [ -e "./$misskey_directory/.config" ]; then
+	if [ -f "./$misskey_directory/.config" ]; then
+		rm "./$misskey_directory/.config";
+	fi
+else
+	mkdir "./$misskey_directory/.config"
+fi
+MKEOF
+fi
+
+su "$misskey_user" << MKEOF
+set -eu;
+cd ~;
+
+tput setaf 3;
+echo "Process: create default.yml;"
+tput setaf 7;
+
+cat > "$misskey_directory/.config/default.yml" << _EOF
+url: https://$host
+port: $misskey_port
+
+# PostgreSQL
+db:
+  host: '$db_host'
+  port: $db_port
+  db  : '$db_name'
+  user: '$db_user'
+  pass: '$db_pass'
+
+# Redis
+redis:
+  host: '$redis_host'
+  port: $redis_port
+  pass: '$redis_pass'
+
+# ID type
+id: 'aid'
+
+# syslog
+syslog:
+  host: '$syslog_host'
+  port: '$syslog_port'
+_EOF
+MKEOF
+#endregion
 
 if $nginx_local; then
 	tput setaf 3;
@@ -627,83 +723,6 @@ if [ $method != "systemd" ]; then
 	fi
 #endregion
 fi
-#endregion
-
-#region work with misskey user
-if [ $method != "docker_hub" ]; then
-su "$misskey_user" << MKEOF
-set -eu;
-cd ~;
-tput setaf 3;
-echo "Process: git clone;";
-tput setaf 7;
-if [ -e "./$misskey_directory" ]; then
-	if [ -f "./$misskey_directory" ]; then
-		rm "./$misskey_directory";
-	else
-		rm -rf "./$misskey_directory";
-	fi
-fi
-git clone -b "$branch" --depth 1 "$repository" "$misskey_directory";
-MKEOF
-
-else
-
-su "$misskey_user" << MKEOF
-set -eu;
-cd ~;
-if [ -e "./$misskey_directory" ]; then
-	if [ -f "./$misskey_directory" ]; then
-		rm "./$misskey_directory";
-	fi
-else
-	mkdir "./$misskey_directory"
-fi
-if [ -e "./$misskey_directory/.config" ]; then
-	if [ -f "./$misskey_directory/.config" ]; then
-		rm "./$misskey_directory/.config";
-	fi
-else
-	mkdir "./$misskey_directory/.config"
-fi
-MKEOF
-fi
-
-su "$misskey_user" << MKEOF
-set -eu;
-cd ~;
-
-tput setaf 3;
-echo "Process: create default.yml;"
-tput setaf 7;
-
-cat > "$misskey_directory/.config/default.yml" << _EOF
-url: https://$host
-port: $misskey_port
-
-# PostgreSQL
-db:
-  host: '$db_host'
-  port: $db_port
-  db  : '$db_name'
-  user: '$db_user'
-  pass: '$db_pass'
-
-# Redis
-redis:
-  host: '$redis_host'
-  port: $redis_port
-  pass: '$redis_pass'
-
-# ID type
-id: 'aid'
-
-# syslog
-syslog:
-  host: '$syslog_host'
-  port: '$syslog_port'
-_EOF
-MKEOF
 #endregion
 
 if [ $method == "systemd" ]; then
