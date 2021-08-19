@@ -692,36 +692,33 @@ if [ $method != "systemd" ]; then
 		systemctl restart postgresql;
 	fi
 	#endregion
-
-	#region modify redis conf
-	if $redis_local; then
-		tput setaf 3;
-		echo "Process: modify redis confs;"
-		tput setaf 7;
-
-		if [ -f /etc/redis/redis.conf ]; then
-			cat > /etc/redis/docker.conf <<-_EOF
-			bind $docker_host_ip
-			requirepass $redis_pass
-			_EOF
-			if ! grep "include /etc/redis/docker.conf" /etc/redis/redis.conf; then
-				echo "include /etc/redis/docker.conf" >> /etc/redis/redis.conf;
-			else
-				echo "	skip"
-			fi
-		else
-			echo "Couldn't find /etc/redis/redis.conf."
-			echo "Please modify redis config like following in another shell."
-			echo ""
-			echo "bind $docker_host_ip"
-			echo "requirepass $redis_pass"
-			echo ""
-			read -r -p "Press Enter key to continue> "
-		fi
-
-		systemctl restart redis-server;
-	fi
+fi
 #endregion
+
+#region modify redis conf
+if $redis_local; then
+	tput setaf 3;
+	echo "Process: modify redis confs;"
+	tput setaf 7;
+	if [ -f /etc/redis/redis.conf ]; then
+		echo "requirepass $redis_pass" > /etc/redis/misskey.conf
+		$method != "systemd" && echo "bind $docker_host_ip" >> /etc/redis/misskey.conf
+
+		if ! grep "include /etc/redis/misskey.conf" /etc/redis/redis.conf; then
+			echo "include /etc/redis/misskey.conf" >> /etc/redis/redis.conf;
+		else
+			echo "	skip"
+		fi
+	else
+		echo "Couldn't find /etc/redis/redis.conf."
+		echo "Please modify redis config in another shell like following."
+		echo ""
+		$method != "systemd" && echo "requirepass $redis_pass"
+		echo "bind $docker_host_ip"
+		echo ""
+		read -r -p "Press Enter key to continue> "
+	fi
+	systemctl restart redis-server;
 fi
 #endregion
 
