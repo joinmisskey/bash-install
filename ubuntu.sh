@@ -727,6 +727,9 @@ if [ $method == "systemd" ]; then
 #region work with misskey user
 su "$misskey_user" << MKEOF;
 set -eu;
+pwd
+echo ~
+cd ~
 cd "~/$misskey_directory";
 
 tput setaf 3;
