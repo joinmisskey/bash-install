@@ -378,7 +378,7 @@ if [ -e "./$misskey_directory" ]; then
 		rm -rf "./$misskey_directory";
 	fi
 fi
-git clone -b "$branch" --depth 1 "$repository" "$misskey_directory";
+git clone -b "$branch" --depth 1 --recursive "$repository" "$misskey_directory";
 MKEOF
 
 else
