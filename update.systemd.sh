@@ -23,7 +23,7 @@ npm run migrate;
 MKEOF
 #endregion
 
-if [ $1 == "-r" ]; then
+if [ $# == 1 ] && [ $1 == "-r" ]; then
 	apt update -y;
 	apt full-upgrade -y;
 	reboot;
