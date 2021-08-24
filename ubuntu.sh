@@ -733,7 +733,7 @@ cd "$misskey_directory";
 tput setaf 3;
 echo "Process: install npm packages;"
 tput setaf 7;
-npx yarn install;
+npx yarn install --production;
 
 tput setaf 3;
 echo "Process: build misskey;"
