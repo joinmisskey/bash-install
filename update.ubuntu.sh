@@ -55,7 +55,7 @@ else
 	echo "use default"
 fi
 
-echo "method: $method / user: $misskey_user / dir: $misskey_directory /  $misskey_localhost:$misskey_port"
+echo "method: $method / user: $misskey_user / dir: $misskey_directory / $misskey_localhost:$misskey_port"
 
 if [ $method == "systemd" ]; then
 
@@ -80,7 +80,7 @@ npm run migrate;
 MKEOF
 #endregion
 
-if [ $1 == "-r" ]; then
+if [ $# == 1 ] && [ $1 == "-r" ]; then
 	apt update -y;
 	apt full-upgrade -y;
 	reboot;
