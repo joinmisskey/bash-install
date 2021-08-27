@@ -848,10 +848,10 @@ set -eu;
 cd ~;
 
 tput setaf 3;
-echo "Process: create .misskey-docker.env;"
+echo "Process: create .misskey.env;"
 tput setaf 7;
 
-cat > ".misskey-docker.env" << _EOF
+cat > ".misskey.env" << _EOF
 host="$host"
 misskey_port=$misskey_port
 misskey_directory="$misskey_directory"
