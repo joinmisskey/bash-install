@@ -40,6 +40,7 @@ if [ -f "/root/.misskey.env" ]; then
 		method=systemd;
 	elif [ -f "/home/$misskey_user/.misskey-docker.env" ]; then
 		. "/home/$misskey_user/.misskey-docker.env";
+		
 	else
 		misskey_user=misskey;
 		misskey_directory=misskey;
@@ -58,7 +59,7 @@ fi
 echo "method: $method / user: $misskey_user / dir: $misskey_directory / $misskey_localhost:$misskey_port"
 
 if [ $method == "systemd" ]; then
-
+#region systemd
 #region work with misskey user
 su $misskey_user << MKEOF
 set -eu;
@@ -87,9 +88,25 @@ if [ $# == 1 ] && [ $1 == "-r" ]; then
 else
 	systemctl start misskey;
 fi
-
-elif [ $method == "docker" ]; then
-echo "todo"
+#endregion
 else
-echo "todo"
+	oldid=$(sudo docker images --no-trunc --format "{{.ID}}" $docker_repository)
+
+	if [ $method == "docker" ]; then
+		if [ $# == 1 ]; then
+			docker_repository="$1";
+		else
+			docker_repository="local/misskey:latest";
+		fi
+	else
+		if [ $# == 1 ]; then
+			docker_repository="$1";
+		else
+			docker_repository="misskey/misskey:latest";
+		fi
+		
+	fi
+
+	docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
+	sudo docker image rm local/misskey:latest
 fi
