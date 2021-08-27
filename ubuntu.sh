@@ -363,8 +363,8 @@ tput setaf 7;
 apt update -y;
 apt install -y curl nano gnupg2 apt-transport-https ca-certificates lsb-release git build-essential software-properties-common ffmpeg uidmap$($nginx_local && echo " certbot")$($cloudflare && echo " python3-certbot-dns-cloudflare");
 
-#region work with misskey user
 if [ $method != "docker_hub" ]; then
+#region work with misskey user
 su "$misskey_user" << MKEOF
 set -eu;
 cd ~;
@@ -380,9 +380,9 @@ if [ -e "./$misskey_directory" ]; then
 fi
 git clone -b "$branch" --depth 1 --recursive "$repository" "$misskey_directory";
 MKEOF
-
+#endregion
 else
-
+#region work with misskey user
 su "$misskey_user" << MKEOF
 set -eu;
 cd ~;
@@ -401,8 +401,13 @@ else
 	mkdir "./$misskey_directory/.config"
 fi
 MKEOF
+#endregion
 fi
 
+tput setaf 3;
+echo "Process: write default.yml;";
+tput setaf 7;
+#region work with misskey user
 su "$misskey_user" << MKEOF
 set -eu;
 cd ~;
@@ -611,6 +616,7 @@ tput setaf 7;
 
 systemctl restart nginx;
 systemctl enable nginx;
+
 tput setaf 2;
 echo "Check: localhost returns nginx;";
 tput setaf 7;
@@ -828,6 +834,7 @@ echo "Process: create .misskey-docker.env;"
 tput setaf 7;
 
 cat > ".misskey-docker.env" << _EOF
+method="$method"
 host="$host"
 misskey_port=$misskey_port
 misskey_directory="$misskey_directory"
