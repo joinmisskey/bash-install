@@ -720,7 +720,7 @@ if $redis_local; then
 		echo "Please modify redis config in another shell like following."
 		echo ""
 		echo "requirepass $redis_pass"
-		$method != "systemd" && echo "bind $docker_host_ip"
+		[ $method != "systemd" ] && echo "bind $docker_host_ip"
 		echo ""
 		read -r -p "Press Enter key to continue> "
 	fi
