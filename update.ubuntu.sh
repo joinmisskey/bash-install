@@ -62,7 +62,7 @@ echo "method: $method / user: $misskey_user / dir: $misskey_directory / $misskey
 if [ $method == "systemd" ]; then
 #region systemd
 #region work with misskey user
-su $misskey_user << MKEOF
+su "$misskey_user" << MKEOF
 set -eu;
 cd ~/$misskey_directory;
 git pull;
@@ -72,7 +72,7 @@ MKEOF
 systemctl stop misskey
 
 #region work with misskey user
-su $misskey_user << MKEOF
+su "$misskey_user" << MKEOF
 set -eu;
 cd ~/$misskey_directory;
 npx yarn install;
@@ -93,7 +93,6 @@ fi
 else
 	m_uid=$(id -u "$misskey_user");
 	oldid=$(sudo docker images --no-trunc --format "{{.ID}}" $docker_repository);
-	docker="sudo -u \"$misskey_user\" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker";
 
 	if [ $method == "docker" ]; then
 		if [ $# == 1 ]; then
@@ -102,7 +101,7 @@ else
 			docker_repository="local/misskey:latest";
 		fi
 
-		$docker build -t $docker_repository "/home/$misskey_user/$misskey_directory";
+		sudo -u '$misskey_user' XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_repository "/home/$misskey_user/$misskey_directory";
 
 	else
 		if [ $# == 1 ]; then
@@ -111,10 +110,10 @@ else
 			docker_repository="misskey/misskey:latest";
 		fi
 
-		$docker pull "$docker_repository";
+		sudo -u '$misskey_user' XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker pull "$docker_repository";
 	fi
 
-	docker_container=$($docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
+	docker_container=$(sudo -u '$misskey_user' XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
 
 	su "$misskey_user" <<-MKEOF
 	set -eu;
@@ -137,6 +136,6 @@ else
 	_EOF
 	MKEOF
 
-	$docker image rm "$oldid"
+	sudo -u '$misskey_user' XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker image rm "$oldid"
 
 fi
