@@ -41,7 +41,6 @@ if [ -f "/root/.misskey.env" ]; then
 		method=systemd;
 	elif [ -f "/home/$misskey_user/.misskey-docker.env" ]; then
 		. "/home/$misskey_user/.misskey-docker.env";
-		
 	else
 		misskey_user=misskey;
 		misskey_directory=misskey;
