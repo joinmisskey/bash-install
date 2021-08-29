@@ -97,14 +97,6 @@ case "$yn" in
 	*)
 		echo "Use Docker.";
 		method=docker;
-
-		echo "Determine the local IP of this computer as docker host.";
-		echo "The IPs that are supposed to be available are as follows (the result of hostname -I)";
-		echo "	$(hostname -I)"
-		read -r -p "> " -e -i "$(hostname -I | cut -f1 -d' ')" docker_host_ip;
-
-		echo "The host name of docker host to bind with 'docker run --add-host='.";
-		read -r -p "> " -e -i "docker_host" misskey_localhost;
 		;;
 esac
 #endregion
@@ -248,15 +240,15 @@ case "$yn" in
 		db_local=false;
 
 		echo "Database host: ";
-		read -r -p "> " -e -i "$misskey_localhost" db_host;
+		read -r -p "> " -e -i "localhost" db_host;
 		echo "Database port:";
 		read -r -p "> " -e -i "5432" db_port;
 		;;
 	*)
-		echo "PostgreSQL will be installed on this computer at $misskey_localhost:5432.";
+		echo "PostgreSQL will be installed on this computer at localhost:5432.";
 		db_local=true;
 
-		db_host=$misskey_localhost;
+		db_host=localhost;
 		db_port=5432;
 		;;
 esac
@@ -283,15 +275,15 @@ case "$yn" in
 		redis_local=false;
 
 		echo "Redis host:";
-		read -r -p "> " -e -i "$misskey_localhost" redis_host;
+		read -r -p "> " -e -i "localhost" redis_host;
 		echo "Redis port:";
 		read -r -p "> " -e -i "6379" redis_port;
 		;;
 	*)
-		echo "Redis will be installed on this computer at $misskey_localhost:6379.";
+		echo "Redis will be installed on this computer at localhost:6379.";
 		redis_local=true;
 
-		redis_host=$misskey_localhost;
+		redis_host=localhost;
 		redis_port=6379;
 		;;
 esac
@@ -306,7 +298,7 @@ echo "";
 echo "Syslog setting";
 tput setaf 7;
 echo "Syslog host: ";
-read -r -p "> " -e -i "$misskey_localhost" syslog_host;
+read -r -p "> " -e -i "localhost" syslog_host;
 echo "Syslog port: ";
 read -r -p "> " -e -i "514" syslog_port;
 #endregion
@@ -668,36 +660,6 @@ if [ $method != "systemd" ]; then
 	docker ps;
 	MKEOF
 	#endregion
-
-	#region modify postgres confs
-	if $db_local; then
-		tput setaf 3;
-		echo "Process: modify postgres confs;"
-		tput setaf 7;
-		pg_hba=$(sudo -u postgres psql -t -P format=unaligned -c 'show hba_file')
-		pg_conf=$(sudo -u postgres psql -t -P format=unaligned -c 'show config_file')
-		[[ $(ip addr | grep "$docker_host_ip") =~ /([0-9]+) ]] && subnet=${BASH_REMATCH[1]};
-
-		hba_text="host $db_name $db_user $docker_host_ip/$subnet md5"
-		if ! grep "$hba_text" "$pg_hba"; then
-			echo "$hba_text" >> "$pg_hba";
-		fi
-
-		pgconf_search="#listen_addresses = 'localhost'"
-		pgconf_text="listen_addresses = '$docker_host_ip'"
-		if grep "$pgconf_search" "$pg_conf"; then
-			sed -i'.mkmoded' -e "s/$pgconf_search/$pgconf_text/g" "$pg_conf";
-		elif grep "$pgconf_text" "$pg_conf"; then
-			echo "	skip"
-		else
-			echo "Please edit postgresql.conf to set [listen_addresses = '$docker_host_ip'] by your hand."
-			read -r -p "Enter the editor command and press Enter key > " -e -i "nano" editorcmd
-			$editorcmd "$pg_conf";
-		fi
-
-		systemctl restart postgresql;
-	fi
-	#endregion
 fi
 #endregion
 
@@ -708,7 +670,6 @@ if $redis_local; then
 	tput setaf 7;
 	if [ -f /etc/redis/redis.conf ]; then
 		echo "requirepass $redis_pass" > /etc/redis/misskey.conf
-		$method != "systemd" && echo "bind $docker_host_ip" >> /etc/redis/misskey.conf
 
 		if ! grep "include /etc/redis/misskey.conf" /etc/redis/redis.conf; then
 			echo "include /etc/redis/misskey.conf" >> /etc/redis/redis.conf;
@@ -719,8 +680,7 @@ if $redis_local; then
 		echo "Couldn't find /etc/redis/redis.conf."
 		echo "Please modify redis config in another shell like following."
 		echo ""
-		$method != "systemd" && echo "requirepass $redis_pass"
-		echo "bind $docker_host_ip"
+		echo "requirepass $redis_pass"
 		echo ""
 		read -r -p "Press Enter key to continue> "
 	fi
@@ -823,7 +783,7 @@ echo ""
 tput setaf 3;
 echo "Process: docker run;"
 tput setaf 7;
-docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
+docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --net host -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
 echo $docker_container
 su "$misskey_user" << MKEOF
 set -eu;
@@ -838,8 +798,6 @@ method="$method"
 host="$host"
 misskey_port=$misskey_port
 misskey_directory="$misskey_directory"
-misskey_localhost="$misskey_localhost"
-docker_host_ip=$docker_host_ip
 docker_repository="$docker_repository"
 docker_container="$docker_container"
 version="$version"
@@ -862,7 +820,6 @@ cat > ".misskey.env" << _EOF
 host="$host"
 misskey_port=$misskey_port
 misskey_directory="$misskey_directory"
-misskey_localhost="$misskey_localhost"
 version="$version"
 _EOF
 MKEOF
