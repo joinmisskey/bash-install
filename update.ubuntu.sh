@@ -92,7 +92,7 @@ fi
 #endregion
 else
 	m_uid=$(id -u "$misskey_user");
-	oldid=$(sudo docker images --no-trunc --format "{{.ID}}" $docker_repository);
+	oldid=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker images --no-trunc --format "{{.ID}}" $docker_repository);
 
 	if [ $method == "docker" ]; then
 		if [ $# == 1 ]; then
