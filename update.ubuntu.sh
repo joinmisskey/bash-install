@@ -137,6 +137,5 @@ else
 	_EOF
 	MKEOF
 
-	sudo -u $misskey_user XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker image rm "$oldid"
-
+	sudo -u $misskey_user XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker image rmi "$oldid"
 fi
