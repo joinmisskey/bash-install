@@ -708,7 +708,7 @@ if $redis_local; then
 	tput setaf 7;
 	if [ -f /etc/redis/redis.conf ]; then
 		echo "requirepass $redis_pass" > /etc/redis/misskey.conf
-		$method != "systemd" && echo "bind $docker_host_ip" >> /etc/redis/misskey.conf
+		[ $method != "systemd" ] && echo "bind $docker_host_ip" >> /etc/redis/misskey.conf
 
 		if ! grep "include /etc/redis/misskey.conf" /etc/redis/redis.conf; then
 			echo "include /etc/redis/misskey.conf" >> /etc/redis/redis.conf;
@@ -719,8 +719,8 @@ if $redis_local; then
 		echo "Couldn't find /etc/redis/redis.conf."
 		echo "Please modify redis config in another shell like following."
 		echo ""
-		$method != "systemd" && echo "requirepass $redis_pass"
-		echo "bind $docker_host_ip"
+		echo "requirepass $redis_pass"
+		$method != "systemd" && echo "bind $docker_host_ip"
 		echo ""
 		read -r -p "Press Enter key to continue> "
 	fi
@@ -799,7 +799,7 @@ tput setaf 3;
 echo "Process: build docker image;"
 tput setaf 7;
 
-sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_repository "/home/$misskey_user/$misskey_directory"
+sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_repository "/home/$misskey_user/$misskey_directory";
 #endregion
 fi
 
@@ -824,7 +824,7 @@ tput setaf 3;
 echo "Process: docker run;"
 tput setaf 7;
 docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
-echo $docker_container
+echo $docker_container;
 su "$misskey_user" << MKEOF
 set -eu;
 cd ~;

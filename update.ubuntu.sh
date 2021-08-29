@@ -46,17 +46,17 @@ if [ -f "/root/.misskey.env" ]; then
 		misskey_directory=misskey;
 		misskey_localhost=localhost;
 		method=systemd;
-		echo "use default"
+		echo "use default";
 	fi
 else
 	misskey_user=misskey;
 	misskey_directory=misskey;
 	misskey_localhost=localhost;
 	method=systemd;
-	echo "use default"
+	echo "use default";
 fi
 
-echo "method: $method / user: $misskey_user / dir: $misskey_directory / $misskey_localhost:$misskey_port"
+echo "method: $method / user: $misskey_user / dir: $misskey_directory / $misskey_localhost:$misskey_port";
 
 if [ $method == "systemd" ]; then
 #region systemd
@@ -90,7 +90,9 @@ else
 fi
 #endregion
 else
-	oldid=$(sudo docker images --no-trunc --format "{{.ID}}" $docker_repository)
+	m_uid=$(id -u "$misskey_user");
+	oldid=$(sudo docker images --no-trunc --format "{{.ID}}" $docker_repository);
+	docker="sudo -u \"$misskey_user\" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker";
 
 	if [ $method == "docker" ]; then
 		if [ $# == 1 ]; then
@@ -98,15 +100,19 @@ else
 		else
 			docker_repository="local/misskey:latest";
 		fi
+
+		$docker build -t $docker_repository "/home/$misskey_user/$misskey_directory";
+
 	else
 		if [ $# == 1 ]; then
 			docker_repository="$1";
 		else
 			docker_repository="misskey/misskey:latest";
 		fi
-		
+
+		$docker pull "$docker_repository";
 	fi
 
-	docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
-	sudo docker image rm local/misskey:latest
+	docker_container=$($docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
+	$docker image rm "$oldid"
 fi
