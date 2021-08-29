@@ -18,6 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
+version="1.0.0-beta";
 
 tput setaf 2;
 echo "Check: root user;";
@@ -114,5 +115,28 @@ else
 	fi
 
 	docker_container=$($docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
+
+	su "$misskey_user" <<-MKEOF
+	set -eu;
+	cd ~;
+
+	tput setaf 3;
+	echo "Process: create .misskey-docker.env;"
+	tput setaf 7;
+
+	cat > ".misskey-docker.env" << _EOF
+	method="$method"
+	host="$host"
+	misskey_port=$misskey_port
+	misskey_directory="$misskey_directory"
+	misskey_localhost="$misskey_localhost"
+	docker_host_ip=$docker_host_ip
+	docker_repository="$docker_repository"
+	docker_container="$docker_container"
+	version="$version"
+	_EOF
+	MKEOF
+
 	$docker image rm "$oldid"
+
 fi
