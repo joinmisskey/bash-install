@@ -85,16 +85,11 @@ tput setaf 3;
 echo "";
 echo "Install Method";
 tput setaf 7;
-echo "Do you use Docker to run Misskey?:";
-echo "Y = To use Docker / N = To use systemd"
+echo "Do you use systemd to run Misskey?:";
+echo "Y = To use systemd / n = To use docker"
 read -r -p "[Y/n] > " yn
 case "$yn" in
 	[Nn]|[Nn][Oo])
-		echo "Use Systemd.";
-		method=systemd;
-		misskey_localhost=localhost
-		;;
-	*)
 		echo "Use Docker.";
 		method=docker;
 
@@ -105,6 +100,11 @@ case "$yn" in
 
 		echo "The host name of docker host to bind with 'docker run --add-host='.";
 		read -r -p "> " -e -i "docker_host" misskey_localhost;
+		;;
+	*)
+		echo "Use Systemd.";
+		method=systemd;
+		misskey_localhost=localhost
 		;;
 esac
 #endregion
@@ -541,7 +541,7 @@ tput setaf 3;
 echo "Process: create nginx config;"
 tput setaf 7;
 
-cat > /etc/nginx/conf.d/misskey.conf << NGEOF
+cat > "/etc/nginx/conf.d/$host.conf" << NGEOF
 # nginx configuration for Misskey
 # Created by joinmisskey/bash-install v$version
 
@@ -767,7 +767,7 @@ MKEOF
 tput setaf 3;
 echo "Process: create misskey daemon;"
 tput setaf 7;
-cat > /etc/systemd/system/misskey.service << _EOF
+cat > "/etc/systemd/system/$host.service" << _EOF
 [Unit]
 Description=Misskey daemon
 
@@ -780,7 +780,7 @@ Environment="NODE_ENV=production"
 TimeoutSec=60
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=misskey
+SyslogIdentifier="$host"
 Restart=always
 
 [Install]
@@ -788,9 +788,9 @@ WantedBy=multi-user.target
 _EOF
 
 systemctl daemon-reload;
-systemctl enable misskey;
-systemctl start misskey;
-systemctl status misskey;
+systemctl enable "$host";
+systemctl start "$host";
+systemctl status "$host";
 
 #endregion
 elif [ $method == "docker" ]; then
