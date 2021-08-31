@@ -41,7 +41,7 @@ example.comは自分のドメインに置き換えてください。
 まずはダウンロードします。
 
 ```
-wget https://raw.githubusercontent.com/joinmisskey/bash-install/main/update.ubuntu.sh -O update.sh;
+wget https://raw.githubusercontent.com/joinmisskey/bash-install/main/update.ubuntu.sh -O update.sh
 ```
 
 アップデートしたいときにスクリプトを実行してください。
@@ -75,18 +75,16 @@ sudo bash update.sh
 ## Systemd or Docker?
 v1から、インストールメソッドにsystemdとDockerとを選べるようにしました。
 
-Dockerと言っても、**MisskeyだけをDockerで実行します**。  
-RedisやPostgresはホストマシンで実行します。  
+Dockerと言っても、**MisskeyだけをDockerで実行**し、RedisやPostgresなどはホストで直接実行します。  
 [docker-composeですべての機能を動かす方法については、mamemonongaさんが作成したこちらの記事がおすすめです。](https://gist.github.com/mamemomonga/5549bb69cad8e5618e5527593d4890e0)
 
-Docker Hubイメージを使う設定であれば、Misskeyのビルドが不要になります。  
-**一番お勧めです。**  
+Docker Hubイメージを使う設定であれば、Misskeyのビルドが不要になるため、**一番お勧めです**。  
 ただし、マイグレーションは必要なので、Misskeyを使えない時間がゼロになるわけではありません。  
-さらに、Misskeyのビルド環境を準備しないので、自分のフォークを動かしたくなった時に設定が面倒になります。
+また、Misskeyのビルド環境を準備しない(git pullしない)ので、フォークを動かしたくなった時に設定が面倒になります。
 
-逆に、ローカルでDockerをビルドする方式は、パフォーマンス面で非推奨です。
+ローカルでDockerをビルドする方式は、パフォーマンス面で非推奨です。
 
-systemdは、Docker Hubにイメージを上げるまでもないけれど、自分のフォークを使いたい場合にお勧めです。
+systemdは、Docker Hubにイメージを上げるまでもないものの、フォークを使いたい場合にお勧めです。
 
 お勧めする順番は次の通りです。
 
