@@ -68,7 +68,7 @@ git pull;
 MKEOF
 #endregion
 
-systemctl stop misskey
+systemctl stop "$host"
 
 #region work with misskey user
 su "$misskey_user" << MKEOF
@@ -86,7 +86,7 @@ if [ $# == 1 ] && [ $1 == "-r" ]; then
 	apt full-upgrade -y;
 	reboot;
 else
-	systemctl start misskey;
+	systemctl start "$host";
 fi
 #endregion
 else
