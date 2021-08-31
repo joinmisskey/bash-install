@@ -18,6 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
+version="1.0.0-beta";
 
 tput setaf 2;
 echo "Check: root user;";
@@ -40,28 +41,27 @@ if [ -f "/root/.misskey.env" ]; then
 		method=systemd;
 	elif [ -f "/home/$misskey_user/.misskey-docker.env" ]; then
 		. "/home/$misskey_user/.misskey-docker.env";
-		
 	else
 		misskey_user=misskey;
 		misskey_directory=misskey;
 		misskey_localhost=localhost;
 		method=systemd;
-		echo "use default"
+		echo "use default";
 	fi
 else
 	misskey_user=misskey;
 	misskey_directory=misskey;
 	misskey_localhost=localhost;
 	method=systemd;
-	echo "use default"
+	echo "use default";
 fi
 
-echo "method: $method / user: $misskey_user / dir: $misskey_directory / $misskey_localhost:$misskey_port"
+echo "method: $method / user: $misskey_user / dir: $misskey_directory / $misskey_localhost:$misskey_port";
 
 if [ $method == "systemd" ]; then
 #region systemd
 #region work with misskey user
-su $misskey_user << MKEOF
+su "$misskey_user" << MKEOF
 set -eu;
 cd ~/$misskey_directory;
 git pull;
@@ -71,7 +71,7 @@ MKEOF
 systemctl stop misskey
 
 #region work with misskey user
-su $misskey_user << MKEOF
+su "$misskey_user" << MKEOF
 set -eu;
 cd ~/$misskey_directory;
 npx yarn install;
@@ -90,7 +90,8 @@ else
 fi
 #endregion
 else
-	oldid=$(sudo docker images --no-trunc --format "{{.ID}}" $docker_repository)
+	m_uid=$(id -u "$misskey_user");
+	oldid=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker images --no-trunc --format "{{.ID}}" $docker_repository);
 
 	if [ $method == "docker" ]; then
 		if [ $# == 1 ]; then
@@ -98,15 +99,42 @@ else
 		else
 			docker_repository="local/misskey:latest";
 		fi
+
+		sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_repository "/home/$misskey_user/$misskey_directory";
+
 	else
 		if [ $# == 1 ]; then
 			docker_repository="$1";
 		else
 			docker_repository="misskey/misskey:latest";
 		fi
-		
+
+		sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker pull "$docker_repository";
 	fi
 
+	sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker rm -f "$docker_container";
 	docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
-	sudo docker image rm local/misskey:latest
+
+	su "$misskey_user" <<-MKEOF
+	set -eu;
+	cd ~;
+
+	tput setaf 3;
+	echo "Process: create .misskey-docker.env;"
+	tput setaf 7;
+
+	cat > ".misskey-docker.env" << _EOF
+	method="$method"
+	host="$host"
+	misskey_port=$misskey_port
+	misskey_directory="$misskey_directory"
+	misskey_localhost="$misskey_localhost"
+	docker_host_ip=$docker_host_ip
+	docker_repository="$docker_repository"
+	docker_container="$docker_container"
+	version="$version"
+	_EOF
+	MKEOF
+
+	sudo -u $misskey_user XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker image rmi "$oldid"
 fi

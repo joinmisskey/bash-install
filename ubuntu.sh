@@ -85,16 +85,11 @@ tput setaf 3;
 echo "";
 echo "Install Method";
 tput setaf 7;
-echo "Do you use Docker to run Misskey?:";
-echo "Y = To use Docker / N = To use systemd"
+echo "Do you use systemd to run Misskey?:";
+echo "Y = To use systemd / n = To use docker"
 read -r -p "[Y/n] > " yn
 case "$yn" in
 	[Nn]|[Nn][Oo])
-		echo "Use Systemd.";
-		method=systemd;
-		misskey_localhost=localhost
-		;;
-	*)
 		echo "Use Docker.";
 		method=docker;
 
@@ -105,6 +100,11 @@ case "$yn" in
 
 		echo "The host name of docker host to bind with 'docker run --add-host='.";
 		read -r -p "> " -e -i "docker_host" misskey_localhost;
+		;;
+	*)
+		echo "Use Systemd.";
+		method=systemd;
+		misskey_localhost=localhost
 		;;
 esac
 #endregion
@@ -541,7 +541,7 @@ tput setaf 3;
 echo "Process: create nginx config;"
 tput setaf 7;
 
-cat > /etc/nginx/conf.d/misskey.conf << NGEOF
+cat > "/etc/nginx/conf.d/$host.conf" << NGEOF
 # nginx configuration for Misskey
 # Created by joinmisskey/bash-install v$version
 
@@ -708,7 +708,7 @@ if $redis_local; then
 	tput setaf 7;
 	if [ -f /etc/redis/redis.conf ]; then
 		echo "requirepass $redis_pass" > /etc/redis/misskey.conf
-		$method != "systemd" && echo "bind $docker_host_ip" >> /etc/redis/misskey.conf
+		[ $method != "systemd" ] && echo "bind $docker_host_ip" >> /etc/redis/misskey.conf
 
 		if ! grep "include /etc/redis/misskey.conf" /etc/redis/redis.conf; then
 			echo "include /etc/redis/misskey.conf" >> /etc/redis/redis.conf;
@@ -719,8 +719,8 @@ if $redis_local; then
 		echo "Couldn't find /etc/redis/redis.conf."
 		echo "Please modify redis config in another shell like following."
 		echo ""
-		$method != "systemd" && echo "requirepass $redis_pass"
-		echo "bind $docker_host_ip"
+		echo "requirepass $redis_pass"
+		[ $method != "systemd" ] && echo "bind $docker_host_ip"
 		echo ""
 		read -r -p "Press Enter key to continue> "
 	fi
@@ -767,7 +767,7 @@ MKEOF
 tput setaf 3;
 echo "Process: create misskey daemon;"
 tput setaf 7;
-cat > /etc/systemd/system/misskey.service << _EOF
+cat > "/etc/systemd/system/$host.service" << _EOF
 [Unit]
 Description=Misskey daemon
 
@@ -780,7 +780,7 @@ Environment="NODE_ENV=production"
 TimeoutSec=60
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=misskey
+SyslogIdentifier="$host"
 Restart=always
 
 [Install]
@@ -788,9 +788,9 @@ WantedBy=multi-user.target
 _EOF
 
 systemctl daemon-reload;
-systemctl enable misskey;
-systemctl start misskey;
-systemctl status misskey;
+systemctl enable "$host";
+systemctl start "$host";
+systemctl status "$host";
 
 #endregion
 elif [ $method == "docker" ]; then
@@ -799,7 +799,7 @@ tput setaf 3;
 echo "Process: build docker image;"
 tput setaf 7;
 
-sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_repository "/home/$misskey_user/$misskey_directory"
+sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_repository "/home/$misskey_user/$misskey_directory";
 #endregion
 fi
 
@@ -823,8 +823,8 @@ echo ""
 tput setaf 3;
 echo "Process: docker run;"
 tput setaf 7;
-docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
-echo $docker_container
+docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v "/home/$misskey_user/$misskey_directory/files":/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
+echo "$docker_container";
 su "$misskey_user" << MKEOF
 set -eu;
 cd ~;
