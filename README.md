@@ -156,7 +156,11 @@ sudo su - ユーザー
 export XDG_RUNTIME_DIR=/run/user/$UID
 export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock
 
+# プロセス一覧を表示
 docker ps
+
+# ログを表示
+docker logs --tail 50 -f コンテナID
 ```
 
 ### nginx
@@ -166,9 +170,12 @@ nginxの設定は`/etc/nginx/conf.d/example.com.conf`として保存されてい
 requirepassとbindを`/etc/redis/misskey.conf`で設定しています。
 
 ## Q. アップデート後に502でアクセスできない
-アップデート後にアクセスできない、ということが稀にあります。
+Dockerでは、起動後にマイグレーションをするため、すぐにアクセスできません。  
+マイグレーションが終わっているかどうか確認してみてください。
 
-スクリプトのバグはともかくとして、一般的に一番多い理由は、yarn installに失敗している場合です。  
+それでもアップデート後にアクセスできない、ということが稀にあります。
+
+もしくは、yarn installに失敗しているというものです。  
 
 Misskeyディレクトリで次の内容を実行し、もう一度アップデートを実行してみてください。
 
