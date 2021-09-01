@@ -70,7 +70,7 @@ sudo bash update.sh
 機能の提案についても歓迎いたします。
 
 # Tips
-仕様や選択肢の選び方など。
+選択肢の選び方や仕様についてなど。
 
 ## Systemd or Docker?
 v1から、インストールメソッドにsystemdとDockerとを選べるようにしました。
@@ -92,6 +92,11 @@ systemdは、Docker Hubにイメージを上げるまでもないものの、フ
 2. systemd
 3. Dockerビルド
 
+## nginxを使うかどうか
+サーバー1台でMisskeyを構築する場合は、nginxの使用をお勧めします。
+
+ロードバランサーを設置する場合にはnginxをインストールせず、[Misskeyのnginx設定](https://github.com/misskey-dev/misskey/blob/develop/docs/examples/misskey.nginx)を参考にロードバランサーを設定するのがよいと思います。
+
 ## .envファイルについて
 インストールスクリプトは、2つの.envファイルを作成します。  
 アップデートの際に使用します。
@@ -109,7 +114,7 @@ Dockerの場合に生成されます。
 コンテナの番号はアップデートの際に更新されます。古いイメージは削除されます。
 
 ## 自分で管理する
-インストール後、構成を変更する際に役立つはずのメモです。
+インストール後、構成を変更する際に役立つかもしれないメモです。
 
 "example.com"を自分のドメインに置き換えて読んでください。
 
@@ -161,6 +166,12 @@ docker ps
 
 # ログを表示
 docker logs --tail 50 -f コンテナID
+```
+
+ワンライナーなら次のようにします。
+
+```
+sudo -u ユーザー XDG_RUNTIME_DIR=/run/user/$(id -u ユーザー) DOCKER_HOST=unix:///run/user/$(id -u ユーザー)/docker.sock docker ps
 ```
 
 ### nginx

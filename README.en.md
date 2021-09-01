@@ -66,7 +66,7 @@ It is difficult to provide assistance for environments other than the above, but
 Suggestions for features are also welcome.
 
 # Tips
-仕様や選択肢の選び方など。
+選択肢の選び方や仕様についてなど。
 
 ## Systemd or Docker?
 v1から、インストールメソッドにsystemdとDockerとを選べるようにしました。
@@ -88,6 +88,11 @@ systemdは、Docker Hubにイメージを上げるまでもないものの、フ
 2. systemd
 3. Dockerビルド
 
+## nginxを使うかどうか
+サーバー1台でMisskeyを構築する場合は、nginxの使用をお勧めします。
+
+ロードバランサーを設置する場合にはnginxをインストールせず、[Misskeyのnginx設定](https://github.com/misskey-dev/misskey/blob/develop/docs/examples/misskey.nginx)を参考にロードバランサーを設定するのがよいと思います。
+
 ## .envファイルについて
 インストールスクリプトは、2つの.envファイルを作成します。  
 アップデートの際に使用します。
@@ -105,7 +110,7 @@ Dockerの場合に生成されます。
 コンテナの番号はアップデートの際に更新されます。古いイメージは削除されます。
 
 ## 自分で管理する
-インストール後、構成を変更する際に役立つはずのメモです。
+インストール後、構成を変更する際に役立つかもしれないメモです。
 
 "example.com"を自分のドメインに置き換えて読んでください。
 
@@ -159,6 +164,12 @@ docker ps
 docker logs --tail 50 -f コンテナID
 ```
 
+ワンライナーなら次のようにします。
+
+```
+sudo -u ユーザー XDG_RUNTIME_DIR=/run/user/$(id -u ユーザー) DOCKER_HOST=unix:///run/user/$(id -u ユーザー)/docker.sock docker ps
+```
+
 ### nginx
 nginxの設定は`/etc/nginx/conf.d/example.com.conf`として保存されています。
 
@@ -166,9 +177,12 @@ nginxの設定は`/etc/nginx/conf.d/example.com.conf`として保存されてい
 requirepassとbindを`/etc/redis/misskey.conf`で設定しています。
 
 ## Q. アップデート後に502でアクセスできない
-アップデート後にアクセスできない、ということが稀にあります。
+Dockerでは、起動後にマイグレーションをするため、すぐにアクセスできません。  
+マイグレーションが終わっているかどうか確認してみてください。
 
-スクリプトのバグはともかくとして、一般的に一番多い理由は、yarn installに失敗しているというものです。  
+それでもアップデート後にアクセスできない、ということが稀にあります。
+
+もしくは、yarn installに失敗しているというものです。  
 
 Misskeyディレクトリで次の内容を実行し、もう一度アップデートを実行してみてください。
 
