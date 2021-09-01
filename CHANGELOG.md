@@ -1,3 +1,10 @@
+## v1.0.0
+- MisskeyのDockerでの実行に対応。  
+- 一部設定が反映されていないのを修正。
+  * redisのホスト・ポートとかいろいろ
+- /etc/fstabのswap設定が間違っていたのを修正（/swapfile→/swap）
+- アップデートスクリプトの拡充
+
 ## v0.2.0
 FFmpegをインストールするように  
 Make the script install FFmpeg.
