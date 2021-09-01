@@ -5,7 +5,7 @@ Misskeyを簡単にインストールするためのシェルスクリプトが�
 
 また、アップデートスクリプトもあります。
 
-[**English version**](./README.md)
+[**English version**](./README.en.md)
 
 ## 準備するもの
 1. ドメイン
