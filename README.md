@@ -7,6 +7,9 @@ Misskeyを簡単にインストールするためのシェルスクリプトが�
 
 [**English version**](./README.en.md)
 
+## ライセンス
+[MIT License](./LICENSE)
+
 ## 準備するもの
 1. ドメイン
 2. Ubuntuがインストールされたサーバー
