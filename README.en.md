@@ -7,6 +7,9 @@ There is also an update script.
 
 [**日本語版はこちら**](./README.md)
 
+## License
+[MIT License](./LICENSE)
+
 ## Ingredients
 1. A Domain
 2. An Ubuntu Server
