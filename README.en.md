@@ -15,6 +15,12 @@ There is also an update script.
 2. An Ubuntu Server
 3. A Cloudflare Account (recommended)
 
+## Configure Cloudflare
+If you are using nginx and Cloudflare, you must configure Cloudflare:
+
+- Set DNS.
+- On SSL/TLS setting tab, switch the encryption mode to "Full".
+
 ## Procedures
 ### 1. SSH
 Connect to the server via SSH.  
