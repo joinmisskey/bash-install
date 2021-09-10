@@ -61,6 +61,8 @@ This script runs well on following compute shapes complemented by Oracle Cloud I
 - VM.Standard.E2.1.Micro (AMD)
 - VM.Standard.A1.Flex (ARM) [1OCPU RAM6GB or greater]
 
+Answer to use iptables.
+
 ## Issues & PRs Welcome
 If it does not work in the above environment, it may be a bug. We would appreciate it if you could report it as an issue, with the specified requirements you entered to the script.
 

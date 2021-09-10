@@ -65,6 +65,8 @@ sudo bash update.sh
 - VM.Standard.E2.1.Micro (AMD)
 - VM.Standard.A1.Flex (ARM) [1OCPU RAM6GB or greater]
 
+iptablesを使うようにしてください。
+
 ## Issues & PRs Welcome
 上記の環境で動作しない場合、バグの可能性があります。インストールの際に指定された条件を記載の上、GitHubのIssue機能にてご報告いただければ幸いです。
 
