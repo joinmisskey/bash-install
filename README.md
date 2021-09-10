@@ -15,6 +15,12 @@ Misskeyを簡単にインストールするためのシェルスクリプトが�
 2. Ubuntuがインストールされたサーバー
 3. Cloudflareアカウント（推奨）
 
+## Cloudflareの設定
+nginxとCloudflareを設定する場合、Cloudflareの設定画面にて、
+
+- DNSを設定してください。
+- SSL/TLS設定にて、暗号化モードを「フル」に設定してください。
+
 ## 操作
 ### 1. SSH
 サーバーにSSH接続します。  
