@@ -187,8 +187,25 @@ case "$yn" in
 
 		misskey_port=3000;
 
-		#region cloudflare
+		tput setaf 3;
+		echo "";
+		tput setaf 7;
+		echo "Do you use ufw or iptables?:";
+		echo "Y = To use ufw / N = To use iptables";
 
+		read -r -p "[Y/n] > " yn2
+		case "$yn2" in
+			[Nn]|[Nn][Oo])
+				echo "OK, it will use iptables.";
+				ufw=false
+				;;
+			*)
+				echo "OK, it will use ufw.";
+				ufw=true
+				;;
+			esac
+
+		#region cloudflare
 		tput setaf 3;
 		echo "";
 		echo "Cloudflare setting";
