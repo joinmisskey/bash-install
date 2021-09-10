@@ -18,7 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="1.1.0";
+version="1.2.0";
 
 tput setaf 4;
 echo "";
@@ -202,6 +202,8 @@ case "$yn" in
 			*)
 				echo "OK, it will use ufw.";
 				ufw=true
+				echo "SSH port: ";
+				read -r -p "> " -e -i "22" ssh_port;
 				;;
 			esac
 
@@ -378,7 +380,7 @@ tput setaf 3;
 echo "Process: apt install #1;";
 tput setaf 7;
 apt update -y;
-apt install -y curl nano jq gnupg2 apt-transport-https ca-certificates lsb-release software-properties-common uidmap$($nginx_local && echo " certbot iptables-persistent")$($cloudflare && echo " python3-certbot-dns-cloudflare")$([ $method != "docker_hub" ] && echo " git")$([ $method == "systemd" ] && echo " ffmpeg build-essential");
+apt install -y curl nano jq gnupg2 apt-transport-https ca-certificates lsb-release software-properties-common uidmap$($nginx_local && echo " certbot")$($nginx_local && ($ufw && echo " ufw" || echo " iptables-persistent"))$($cloudflare && echo " python3-certbot-dns-cloudflare")$([ $method != "docker_hub" ] && echo " git")$([ $method == "systemd" ] && echo " ffmpeg build-essential");
 
 if [ $method != "docker_hub" ]; then
 #region work with misskey user
@@ -466,13 +468,23 @@ if $nginx_local; then
 	tput setaf 3;
 	echo "Process: port open;"
 	tput setaf 7;
-	grep -q -x -e "-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT" /etc/iptables/rules.v4 || iptables -I INPUT -p tcp --dport 80 -j ACCEPT;
-	grep -q -x -e "-A INPUT -p tcp -m tcp --dport 443 -j ACCEPT" /etc/iptables/rules.v4 || iptables -I INPUT -p tcp --dport 443 -j ACCEPT;
-	grep -q -x -e "-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT" /etc/iptables/rules.v6 || ip6tables -I INPUT -p tcp --dport 80 -j ACCEPT;
-	grep -q -x -e "-A INPUT -p tcp -m tcp --dport 443 -j ACCEPT" /etc/iptables/rules.v6 || ip6tables -I INPUT -p tcp --dport 443 -j ACCEPT;
 
-	netfilter-persistent save;
-	netfilter-persistent reload;
+	if $ufw; then
+		ufw limit $ssh_port/tcp;
+		ufw default deny;
+		ufw allow 80;
+		ufw allow 443;
+		ufw --force enable;
+		ufw status;
+	else
+		grep -q -x -e "-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT" /etc/iptables/rules.v4 || iptables -I INPUT -p tcp --dport 80 -j ACCEPT;
+		grep -q -x -e "-A INPUT -p tcp -m tcp --dport 443 -j ACCEPT" /etc/iptables/rules.v4 || iptables -I INPUT -p tcp --dport 443 -j ACCEPT;
+		grep -q -x -e "-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT" /etc/iptables/rules.v6 || ip6tables -I INPUT -p tcp --dport 80 -j ACCEPT;
+		grep -q -x -e "-A INPUT -p tcp -m tcp --dport 443 -j ACCEPT" /etc/iptables/rules.v6 || ip6tables -I INPUT -p tcp --dport 443 -j ACCEPT;
+
+		netfilter-persistent save;
+		netfilter-persistent reload;
+	fi
 
 	tput setaf 3;
 	echo "Process: prepare certificate;"
