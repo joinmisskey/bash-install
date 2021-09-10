@@ -5,7 +5,7 @@ Misskeyを簡単にインストールするためのシェルスクリプトが�
 
 また、アップデートスクリプトもあります。
 
-[**日本語版はこちら**](./README.md)
+[**English version**](./README.md)
 
 ## 準備するもの
 1. ドメイン
@@ -41,7 +41,7 @@ example.comは自分のドメインに置き換えてください。
 まずはダウンロードします。
 
 ```
-wget https://raw.githubusercontent.com/joinmisskey/bash-install/main/update.ubuntu.sh -O update.sh;
+wget https://raw.githubusercontent.com/joinmisskey/bash-install/main/update.ubuntu.sh -O update.sh
 ```
 
 アップデートしたいときにスクリプトを実行してください。
@@ -70,29 +70,32 @@ sudo bash update.sh
 機能の提案についても歓迎いたします。
 
 # Tips
-仕様や選択肢の選び方など。
+選択肢の選び方や仕様についてなど。
 
 ## Systemd or Docker?
 v1から、インストールメソッドにsystemdとDockerとを選べるようにしました。
 
-Dockerと言っても、**MisskeyだけをDockerで実行します**。  
-RedisやPostgresはホストマシンで実行します。  
+Dockerと言っても、**MisskeyだけをDockerで実行**し、RedisやPostgresなどはホストで直接実行します。  
 [docker-composeですべての機能を動かす方法については、mamemonongaさんが作成したこちらの記事がおすすめです。](https://gist.github.com/mamemomonga/5549bb69cad8e5618e5527593d4890e0)
 
-Docker Hubイメージを使う設定であれば、Misskeyのビルドが不要になります。  
-**一番お勧めです。**  
+Docker Hubイメージを使う設定であれば、Misskeyのビルドが不要になるため、**一番お勧めです**。  
 ただし、マイグレーションは必要なので、Misskeyを使えない時間がゼロになるわけではありません。  
-さらに、Misskeyのビルド環境を準備しないので、自分のフォークを動かしたくなった時に設定が面倒になります。
+また、Misskeyのビルド環境を準備しない(git pullしない)ので、フォークを動かしたくなった時に設定が面倒になります。
 
-逆に、ローカルでDockerをビルドする方式は、パフォーマンス面で非推奨です。
+ローカルでDockerをビルドする方式は、パフォーマンス面で非推奨です。
 
-systemdは、Docker Hubにイメージを上げるまでもないけれど、自分のフォークを使いたい場合にお勧めです。
+systemdは、Docker Hubにイメージを上げるまでもないものの、フォークを使いたい場合にお勧めです。
 
 お勧めする順番は次の通りです。
 
 1. Docker Hub
 2. systemd
 3. Dockerビルド
+
+## nginxを使うかどうか
+サーバー1台でMisskeyを構築する場合は、nginxの使用をお勧めします。
+
+ロードバランサーを設置する場合にはnginxをインストールせず、[Misskeyのnginx設定](https://github.com/misskey-dev/misskey/blob/develop/docs/examples/misskey.nginx)を参考にロードバランサーを設定するのがよいと思います。
 
 ## .envファイルについて
 インストールスクリプトは、2つの.envファイルを作成します。  
@@ -111,7 +114,7 @@ Dockerの場合に生成されます。
 コンテナの番号はアップデートの際に更新されます。古いイメージは削除されます。
 
 ## 自分で管理する
-インストール後、構成を変更する際に役立つはずのメモです。
+インストール後、構成を変更する際に役立つかもしれないメモです。
 
 "example.com"を自分のドメインに置き換えて読んでください。
 
@@ -158,7 +161,17 @@ sudo su - ユーザー
 export XDG_RUNTIME_DIR=/run/user/$UID
 export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock
 
+# プロセス一覧を表示
 docker ps
+
+# ログを表示
+docker logs --tail 50 -f コンテナID
+```
+
+ワンライナーなら次のようにします。
+
+```
+sudo -u ユーザー XDG_RUNTIME_DIR=/run/user/$(id -u ユーザー) DOCKER_HOST=unix:///run/user/$(id -u ユーザー)/docker.sock docker ps
 ```
 
 ### nginx
@@ -168,9 +181,12 @@ nginxの設定は`/etc/nginx/conf.d/example.com.conf`として保存されてい
 requirepassとbindを`/etc/redis/misskey.conf`で設定しています。
 
 ## Q. アップデート後に502でアクセスできない
-アップデート後にアクセスできない、ということが稀にあります。
+Dockerでは、起動後にマイグレーションをするため、すぐにアクセスできません。  
+マイグレーションが終わっているかどうか確認してみてください。
 
-スクリプトのバグはともかくとして、一般的に一番多い理由は、yarn installに失敗している場合です。  
+それでもアップデート後にアクセスできない、ということが稀にあります。
+
+もしくは、yarn installに失敗しているというものです。  
 
 Misskeyディレクトリで次の内容を実行し、もう一度アップデートを実行してみてください。
 

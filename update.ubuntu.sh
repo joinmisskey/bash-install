@@ -18,7 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="1.0.0-beta";
+version="1.0.0";
 
 tput setaf 2;
 echo "Check: root user;";
@@ -60,33 +60,65 @@ echo "method: $method / user: $misskey_user / dir: $misskey_directory / $misskey
 
 if [ $method == "systemd" ]; then
 #region systemd
+tput setaf 3;
+echo "Process: update (systemd);";
+tput setaf 7;
 #region work with misskey user
 su "$misskey_user" << MKEOF
 set -eu;
 cd ~/$misskey_directory;
+
+tput setaf 3;
+echo "Process: git pull;";
+tput setaf 7;
 git pull;
 MKEOF
 #endregion
 
-systemctl stop misskey
+tput setaf 3;
+echo "Process: stop daemon;";
+tput setaf 7;
+systemctl stop "$host"
 
 #region work with misskey user
 su "$misskey_user" << MKEOF
 set -eu;
 cd ~/$misskey_directory;
+
+tput setaf 3;
+echo "Process: yarn install;";
+tput setaf 7;
 npx yarn install;
+
+tput setaf 3;
+echo "Process: build misskey;";
+tput setaf 7;
 npm run clean;
 NODE_ENV=production npm run build;
+
+tput setaf 3;
+echo "Process: migrate db;";
+tput setaf 7;
 npm run migrate;
 MKEOF
 #endregion
 
 if [ $# == 1 ] && [ $1 == "-r" ]; then
+	tput setaf 3;
+	echo "Process: apt upgrade;";
+	tput setaf 7;
 	apt update -y;
 	apt full-upgrade -y;
+
+	tput setaf 3;
+	echo "reboot;";
+	tput setaf 7;
 	reboot;
 else
-	systemctl start misskey;
+	tput setaf 3;
+	echo "Process: start daemon;";
+	tput setaf 7;
+	systemctl start "$host";
 fi
 #endregion
 else
@@ -94,6 +126,9 @@ else
 	oldid=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker images --no-trunc --format "{{.ID}}" $docker_repository);
 
 	if [ $method == "docker" ]; then
+		tput setaf 3;
+		echo "Process: docker build;";
+		tput setaf 7;
 		if [ $# == 1 ]; then
 			docker_repository="$1";
 		else
@@ -103,6 +138,9 @@ else
 		sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_repository "/home/$misskey_user/$misskey_directory";
 
 	else
+		tput setaf 3;
+		echo "Process: docker pull;";
+		tput setaf 7;
 		if [ $# == 1 ]; then
 			docker_repository="$1";
 		else
@@ -112,7 +150,14 @@ else
 		sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker pull "$docker_repository";
 	fi
 
+	tput setaf 3;
+	echo "Process: docker rm container;";
+	tput setaf 7;
 	sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker rm -f "$docker_container";
+
+	tput setaf 3;
+	echo "Process: docker run;";
+	tput setaf 7;
 	docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
 
 	su "$misskey_user" <<-MKEOF
@@ -136,5 +181,8 @@ else
 	_EOF
 	MKEOF
 
-	sudo -u $misskey_user XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker image rmi "$oldid"
+	tput setaf 3;
+	echo "Process: docker remove image;";
+	tput setaf 7;
+	sudo -u $misskey_user XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker rmi "$oldid"
 fi
