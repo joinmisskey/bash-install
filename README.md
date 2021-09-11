@@ -1,4 +1,4 @@
-# Misskey install shell script v1.0.0
+# Misskey install shell script v1.2.0
 Misskeyを簡単にインストールするためのシェルスクリプトができました！
 
 いくつかの質問に答えるだけで、UbuntuサーバーへMisskey(v12)を簡単にインストールできます！
