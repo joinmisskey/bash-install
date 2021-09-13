@@ -132,7 +132,7 @@ Misskeyのソースは`/home/ユーザー/ディレクトリ`としてcloneさ�
 Misskeyディレクトリへは、以下のように移動するとよいでしょう。
 
 ```
-sudo su - ユーザー
+sudo -iu ユーザー
 cd ディレクトリ
 ```
 
@@ -161,10 +161,10 @@ journalctl -t example.com
 ### Docker
 DockerはMisskeyユーザーでrootless実行されています。
 
-sudo suでMisskeyユーザーに入るときは、`XDG_RUNTIME_DIR`と`DOCKER_HOST`を変更する必要があります。
+sudo でMisskeyユーザーに入るときは、`XDG_RUNTIME_DIR`と`DOCKER_HOST`を変更する必要があります。
 
 ```
-sudo su - ユーザー
+sudo -iu ユーザー
 export XDG_RUNTIME_DIR=/run/user/$UID
 export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock
 
