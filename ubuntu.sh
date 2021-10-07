@@ -18,7 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="1.2.0";
+version="1.2.1";
 
 tput setaf 4;
 echo "";
@@ -342,7 +342,7 @@ tput setaf 2;
 echo "Check: Memory;"
 mem_all=$(free -t --si -g | tail -n 1);
 mem_allarr=(${mem_all//\\t/ });
-if [ "${mem_allarr[1]}" -ge 2 ]; then
+if [ "${mem_allarr[1]}" -ge 3 ]; then
 	tput setaf 7;
 	echo "	OK. This computer has ${mem_allarr[1]}GB RAM.";
 else
@@ -352,8 +352,13 @@ else
 	mem_swap=$(free | tail -n 1);
 	mem_swaparr=(${mem_swap//\\t/ });
 	if [ "${mem_swaparr[1]}" -eq 0 ]; then
-		echo "	Swap will be made (1M x 1536).";
-		dd if=/dev/zero of=/swap bs=1M count=1536;
+		if [ "${mem_allarr[1]}" -ge 2 ]; then
+			echo "	Swap will be made (1M x 1024).";
+			dd if=/dev/zero of=/swap bs=1M count=1024;
+		else
+			echo "	Swap will be made (1M x 2048).";
+			dd if=/dev/zero of=/swap bs=1M count=2048;
+		fi
 		mkswap /swap;
 		swapon /swap;
 		echo "/swap none swap sw 0" >> /etc/fstab;
