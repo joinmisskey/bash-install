@@ -16,7 +16,9 @@ Misskeyを簡単にインストールするためのシェルスクリプトが�
 3. Cloudflareアカウント（推奨）
 
 ## Cloudflareの設定
-nginxとCloudflareを設定する場合、Cloudflareの設定画面にて、
+Cloudflareを使う場合、まずはドメインのネームサーバーをCloudflareに設定し、ネームサーバー設定が適用されたことを確認してからインストールを開始してください（ネームサーバーの適用には最大で3日程度かかる場合があります）。
+
+また、nginxとCloudflareを設定する場合、Cloudflareの設定画面にて、
 
 - DNSを設定してください。
 - SSL/TLS設定にて、暗号化モードを「フル」に設定してください。
