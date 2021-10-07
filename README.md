@@ -1,4 +1,4 @@
-# Misskey install shell script v1.2.0
+# Misskey install shell script v1.2.1
 Misskeyを簡単にインストールするためのシェルスクリプトができました！
 
 いくつかの質問に答えるだけで、UbuntuサーバーへMisskey(v12)を簡単にインストールできます！
@@ -112,6 +112,9 @@ systemdは、Docker Hubにイメージを上げるまでもないものの、フ
 サーバー1台でMisskeyを構築する場合は、nginxの使用をお勧めします。
 
 ロードバランサーを設置する場合にはnginxをインストールせず、[Misskeyのnginx設定](https://github.com/misskey-dev/misskey/blob/develop/docs/examples/misskey.nginx)を参考にロードバランサーを設定するのがよいと思います。
+
+## Add more swaps!
+スワップを設定している場合、メモリが合計で3GB以上でなければスクリプトが動作しないようになっています。
 
 ## 途中で失敗してまたスクリプトを実行する場合
 万が一途中で失敗してもう一度スクリプトを動作させる場合、次のことに注意してください。
