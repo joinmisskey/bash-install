@@ -94,12 +94,12 @@ tput setaf 3;
 echo "Process: build misskey;";
 tput setaf 7;
 npm run clean;
-NODE_ENV=production npm run build;
+NODE_OPTIONS=--max_old_space_size=3072 NODE_ENV=production npm run build;
 
 tput setaf 3;
 echo "Process: migrate db;";
 tput setaf 7;
-npm run migrate;
+NODE_OPTIONS=--max_old_space_size=3072 npm run migrate;
 MKEOF
 #endregion
 

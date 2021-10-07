@@ -778,12 +778,12 @@ npx yarn install --production;
 tput setaf 3;
 echo "Process: build misskey;"
 tput setaf 7;
-NODE_ENV=production npm run build;
+NODE_OPTIONS=--max_old_space_size=3072 NODE_ENV=production npm run build;
 
 tput setaf 3;
 echo "Process: initialize database;"
 tput setaf 7;
-npm run init;
+NODE_OPTIONS=--max_old_space_size=3072 npm run init;
 
 tput setaf 3;
 echo "Check: If Misskey starts correctly;"
