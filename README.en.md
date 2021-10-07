@@ -86,7 +86,7 @@ Dockerと言っても、**MisskeyだけをDockerで実行**し、RedisやPostgre
 [docker-composeですべての機能を動かす方法については、mamemonongaさんが作成したこちらの記事がおすすめです。](https://gist.github.com/mamemomonga/5549bb69cad8e5618e5527593d4890e0)
 
 Docker Hubイメージを使う設定であれば、Misskeyのビルドが不要になるため、**一番お勧めです**。  
-ただし、マイグレーションは必要なので、Misskeyを使えない時間がゼロになるわけではありません。  
+ただし、マイグレーションは必要なので、アップデート時にMisskeyを使えない時間がゼロになるわけではありません。  
 また、Misskeyのビルド環境を準備しない(git pullしない)ので、フォークを動かしたくなった時に設定が面倒になります。
 
 ローカルでDockerをビルドする方式は、パフォーマンス面で非推奨です。
