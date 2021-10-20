@@ -72,6 +72,7 @@ tput setaf 3;
 echo "Process: git pull;";
 tput setaf 7;
 git pull;
+git submodule update --init;
 MKEOF
 #endregion
 
