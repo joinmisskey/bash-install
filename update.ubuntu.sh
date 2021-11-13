@@ -90,8 +90,11 @@ tput setaf 3;
 echo "Process: yarn install and clean;";
 tput setaf 7;
 npx yarn install;
+
+tput setaf 3;
+echo "Process: clean;";
+tput setaf 7;
 npm run clean;
-npx yarn install;
 
 tput setaf 3;
 echo "Process: build misskey;";
