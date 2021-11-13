@@ -18,7 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="1.2.0";
+version="1.3.0";
 
 tput setaf 2;
 echo "Check: root user;";
@@ -87,14 +87,15 @@ set -eu;
 cd ~/$misskey_directory;
 
 tput setaf 3;
-echo "Process: yarn install;";
+echo "Process: yarn install and clean;";
 tput setaf 7;
+npx yarn install;
+npm run clean;
 npx yarn install;
 
 tput setaf 3;
 echo "Process: build misskey;";
 tput setaf 7;
-npm run clean;
 NODE_OPTIONS=--max_old_space_size=3072 NODE_ENV=production npm run build;
 
 tput setaf 3;
