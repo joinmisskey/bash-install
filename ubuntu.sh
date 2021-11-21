@@ -18,7 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="1.3.0";
+version="1.4.0";
 
 tput setaf 4;
 echo "";
@@ -537,7 +537,7 @@ if $redis_local; then
 	tput setaf 3;
 	echo "Process: prepare redis;"
 	tput setaf 7;
-	add-apt-repository ppa:chris-lea/redis-server -y;
+	add-apt-repository ppa:redislabs/redis -y;
 fi
 
 tput setaf 3;

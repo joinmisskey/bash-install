@@ -1,3 +1,29 @@
+## v1.4.0
+RedisのPPAリポジトリを公式のものへ変更しました。
+
+以前のバージョンのスクリプトでインストールした方は、次のコマンドを適宜実行してください。
+
+```
+sudo add-apt-repository --remove ppa:chris-lea/redis-server;
+sudo add-apt-repository ppa:redislabs/redis;
+```
+
+## v1.3.0
+特に変更はありませんが、Misskey v12.96.0ではアップデートスクリプトが動作しませんのでご注意ください。
+
+## v1.2.2
+- NODE_OPTIONS=--max_old_space_size=3072 を指定
+
+## v1.2.1
+- 必要なメモリ量を3GBに
+
+## v1.2.0
+- ufwを使用するオプションを追加
+
+## v1.1.0
+- iptables-persistentをインストールするように
+
+
 ## v1.0.0
 - MisskeyのDockerでの実行に対応。  
 - 一部設定が反映されていないのを修正。
