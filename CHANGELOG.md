@@ -1,3 +1,8 @@
+## v1.4.1
+Nginx設定をTLSv1.3に対応するようにしました。
+
+https://github.com/misskey-dev/misskey-hub/commit/d0800a8ac720774c81a46af2d12f9343dd75f4ba
+
 ## v1.4.0
 RedisのPPAリポジトリを公式のものへ変更しました。
 
