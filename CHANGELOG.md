@@ -1,3 +1,15 @@
+## v1.5.0
+Node.js v18をインストールするように変更しました。
+
+アップデートの際は、アップデートスクリプトを実行する前に、以下のコマンドを実行してください。
+
+```
+sudo systemctl stop example.com # Stop the instance.
+
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+```
+
 ## v1.4.1
 Nginx設定をTLSv1.3に対応するようにしました。
 
