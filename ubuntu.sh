@@ -18,7 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="1.4.1";
+version="1.5.0";
 
 tput setaf 4;
 echo "";
@@ -522,7 +522,7 @@ if [ $method == "systemd" ]; then
 	tput setaf 3;
 	echo "Process: prepare node.js;"
 	tput setaf 7;
-	curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -;
+	curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -;
 else
 	tput setaf 3;
 	echo "Process: prepare docker;"
