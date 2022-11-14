@@ -1,4 +1,7 @@
-## v1.6.0
+## v1.6.1
+Redisのインストール方法を公式に従うようにしました。
+
+## v1.6.1
 - Cloudflare非使用時のcertbotのエラーを修正しました。 https://github.com/joinmisskey/bash-install/pull/8
 - PostgreSQLがインストールできない問題を修正しました（正しいインストール方法に変更しました）。また、PostgreSQLバージョンをv15にアップデートしました。 https://github.com/joinmisskey/bash-install/commit/61cb784619c95e540afa893d9d518a7e1e768c53  
     

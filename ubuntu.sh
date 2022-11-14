@@ -18,7 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="1.6.0";
+version="1.6.1";
 
 tput setaf 4;
 echo "";
@@ -537,14 +537,15 @@ if $redis_local; then
 	tput setaf 3;
 	echo "Process: prepare redis;"
 	tput setaf 7;
-	add-apt-repository ppa:redislabs/redis -y;
+	curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg;
+	echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list;
 fi
 
 tput setaf 3;
 echo "Process: apt install #2;"
 tput setaf 7;
 apt update -y;
-apt install -y$([ $method == "systemd" ] && echo " nodejs" || echo " docker-ce docker-ce-cli containerd.io")$($redis_local && echo " redis-server")$($nginx_local && echo " nginx");
+apt install -y$([ $method == "systemd" ] && echo " nodejs" || echo " docker-ce docker-ce-cli containerd.io")$($redis_local && echo " redis")$($nginx_local && echo " nginx");
 
 echo "Display: Versions;"
 if [ $method == "systemd" ]; then
