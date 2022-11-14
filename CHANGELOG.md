@@ -1,3 +1,13 @@
+## v1.6.0
+- Cloudflare非使用時のcertbotのエラーを修正しました。 https://github.com/joinmisskey/bash-install/pull/8
+- PostgreSQLがインストールできない問題を修正しました（正しいインストール方法に変更しました）。また、PostgreSQLバージョンをv15にアップデートしました。 https://github.com/joinmisskey/bash-install/commit/61cb784619c95e540afa893d9d518a7e1e768c53  
+    
+  **あなたの環境をv1.6.0に合わせるためには、以下のコマンドを実行してください。**
+  ```
+  sudo apt install postgresql-common;
+  sudo sh /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -i -v 15;
+  ```
+
 ## v1.5.0
 Node.js v18をインストールするように変更しました。
 
