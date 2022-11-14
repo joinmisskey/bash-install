@@ -18,7 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="1.5.0";
+version="1.6.0";
 
 tput setaf 4;
 echo "";
@@ -673,8 +673,8 @@ if $db_local; then
 	tput setaf 3;
 	echo "Process: install postgres;"
 	tput setaf 7;
-	wget https://salsa.debian.org/postgresql/postgresql-common/raw/master/pgdg/apt.postgresql.org.sh;
-	sh apt.postgresql.org.sh -i -v 13;
+	apt install -y postgresql-common;
+	sh /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -i -v 15;
 
 	tput setaf 3;
 	echo "Process: create user and database on postgres;"
