@@ -17,11 +17,25 @@ sudo apt install -y redis
 - Cloudflare非使用時のcertbotのエラーを修正しました。 https://github.com/joinmisskey/bash-install/pull/8
 - PostgreSQLがインストールできない問題を修正しました（正しいインストール方法に変更しました）。また、PostgreSQLバージョンをv15にアップデートしました。 https://github.com/joinmisskey/bash-install/commit/61cb784619c95e540afa893d9d518a7e1e768c53  
     
-  **あなたの環境をv1.6.0に合わせるためには、以下のコマンドを実行してください。**
-  ```
-  sudo apt install postgresql-common;
-  sudo sh /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -i -v 15;
-  ```
+## PostgreSQLのアップグレード方法 How to Upgrade Postgres
+
+```
+# Install posgtresql-common
+sudo apt install postgresql-common;
+sudo sh /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -i -v 15;
+
+# New cluster (15 main) is created during installation, but delete.
+sudo pg_dropcluster 15 main --stop;
+
+# Backup to gzip
+sudo -u postgres pg_dumpall | gzip -c > mis.gz;
+
+# Update! (from 13 main)
+sudo pg_upgradecluster 13 main;
+
+# optional: Drop old cluster
+# sudo pg_dropcluster 13 main
+```
 
 ## v1.5.0
 Node.js v18をインストールするように変更しました。
