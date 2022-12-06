@@ -130,6 +130,7 @@ if [ $method == "docker" ]; then
 	else
 		echo "We should build docker manually because this is arm64 machine.";
 		method=docker;
+		docker_repository="local/misskey:latest"
 	fi
 
 fi
