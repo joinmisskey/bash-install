@@ -726,7 +726,7 @@ if [ $method != "systemd" ]; then
 		pgconf_search="#listen_addresses = 'localhost'"
 		pgconf_text="listen_addresses = '$docker_host_ip'"
 		if grep "$pgconf_search" "$pg_conf"; then
-			sed -i '.mkmoded' -e "s/$pgconf_search/$pgconf_text/g" "$pg_conf";
+			sed -i'.mkmoded' -e "s/$pgconf_search/$pgconf_text/g" "$pg_conf";
 		elif grep "$pgconf_text" "$pg_conf"; then
 			echo "	skip"
 		else
