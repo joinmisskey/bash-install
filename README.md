@@ -192,6 +192,9 @@ docker ps
 
 # ログを表示
 docker logs --tail 50 -f コンテナID
+
+# ビルド (local/misskey:latest)
+docker build -t local/misskey:latest .
 ```
 
 ワンライナーなら次のようにします。
