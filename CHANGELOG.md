@@ -1,4 +1,7 @@
 ## v1.6.3
+update.ubuntu.shでユーザーの切り替えに失敗するのを修正（sudo -uの代わりにsudo -iuを使うように）
+
+## v1.6.3
 arm64でdocker buildできない問題を修正
 
 ## v1.6.2
