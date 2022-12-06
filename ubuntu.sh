@@ -680,7 +680,7 @@ if $db_local; then
 	tput setaf 3;
 	echo "Process: create user and database on postgres;"
 	tput setaf 7;
-	sudo -u postgres psql -c "CREATE ROLE $db_user LOGIN CREATEDB PASSWORD '$db_pass';" -c "CREATE DATABASE $db_name OWNER $db_user;"
+	sudo -iu postgres psql -c "CREATE ROLE $db_user LOGIN CREATEDB PASSWORD '$db_pass';" -c "CREATE DATABASE $db_name OWNER $db_user;"
 fi
 
 #region docker setting
@@ -714,8 +714,8 @@ if [ $method != "systemd" ]; then
 		tput setaf 3;
 		echo "Process: modify postgres confs;"
 		tput setaf 7;
-		pg_hba=$(sudo -u postgres psql -t -P format=unaligned -c 'show hba_file')
-		pg_conf=$(sudo -u postgres psql -t -P format=unaligned -c 'show config_file')
+		pg_hba=$(sudo -iu postgres psql -t -P format=unaligned -c 'show hba_file')
+		pg_conf=$(sudo -iu postgres psql -t -P format=unaligned -c 'show config_file')
 		[[ $(ip addr | grep "$docker_host_ip") =~ /([0-9]+) ]] && subnet=${BASH_REMATCH[1]};
 
 		hba_text="host $db_name $db_user $docker_host_ip/$subnet md5"
@@ -839,7 +839,7 @@ tput setaf 3;
 echo "Process: build docker image;"
 tput setaf 7;
 
-sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_repository "/home/$misskey_user/$misskey_directory";
+sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_repository "/home/$misskey_user/$misskey_directory";
 #endregion
 fi
 
@@ -863,7 +863,7 @@ echo ""
 tput setaf 3;
 echo "Process: docker run;"
 tput setaf 7;
-docker_container=$(sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v "/home/$misskey_user/$misskey_directory/files":/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
+docker_container=$(sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v "/home/$misskey_user/$misskey_directory/files":/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
 echo "$docker_container";
 su "$misskey_user" << MKEOF
 set -eu;
@@ -886,7 +886,7 @@ version="$version"
 _EOF
 MKEOF
 
-sudo -u "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker logs -f $docker_container;
+sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker logs -f $docker_container;
 
 else
 
