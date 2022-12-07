@@ -1,4 +1,7 @@
-## v1.6.3
+## v1.6.5
+update.ubuntu.shで`docker image prune`するように
+
+## v1.6.4
 update.ubuntu.shでユーザーの切り替えに失敗するのを修正（sudo -uの代わりにsudo -iuを使うように）
 
 ## v1.6.3

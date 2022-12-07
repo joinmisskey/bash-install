@@ -190,11 +190,14 @@ export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/docker.sock
 # プロセス一覧を表示
 docker ps
 
+# ビルド (リポジトリ: local/misskey:latest)
+docker build -t local/misskey:latest ./misskey
+
+# docker run
+docker run -d -p 3000:3000 --add-host=docker_host:10.0.0.1 -v /home/misskey/misskey/files:/misskey/files -v "/home/misskey/misskey/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "local/misskey:latest"
+
 # ログを表示
 docker logs --tail 50 -f コンテナID
-
-# ビルド (local/misskey:latest)
-docker build -t local/misskey:latest .
 ```
 
 ワンライナーなら次のようにします。

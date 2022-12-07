@@ -18,7 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="1.6.4";
+version="1.6.5";
 
 tput setaf 2;
 echo "Check: root user;";
@@ -156,14 +156,19 @@ else
 	fi
 
 	tput setaf 3;
+	echo "Process: docker run;";
+	tput setaf 7;
+	docker_new_container=$(sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
+
+	tput setaf 3;
 	echo "Process: docker rm container;";
 	tput setaf 7;
 	sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker rm -f "$docker_container";
 
 	tput setaf 3;
-	echo "Process: docker run;";
+	echo "Process: docker image prune;";
 	tput setaf 7;
-	docker_container=$(sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v /home/$misskey_user/$misskey_directory/files:/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
+	sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker image prune -f;
 
 	su "$misskey_user" <<-MKEOF
 	set -eu;
@@ -181,7 +186,7 @@ else
 	misskey_localhost="$misskey_localhost"
 	docker_host_ip=$docker_host_ip
 	docker_repository="$docker_repository"
-	docker_container="$docker_container"
+	docker_container="$docker_new_container"
 	version="$version"
 	_EOF
 	MKEOF
