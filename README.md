@@ -1,4 +1,4 @@
-# Misskey install shell script v1.6.4
+# Misskey install shell script v1.6.5
 Misskeyを簡単にインストールするためのシェルスクリプトができました！
 
 いくつかの質問に答えるだけで、UbuntuサーバーへMisskey(v12)を簡単にインストールできます！
@@ -44,7 +44,7 @@ SSHを接続しなおして、Misskeyのインストールを始めましょう�
 ただ、インストール前に[Tips](#Tips)を読むことを強くお勧めします。
 
 ```
-wget https://raw.githubusercontent.com/joinmisskey/bash-install/main/ubuntu.sh -O ubuntu.sh; sudo bash ubuntu.sh
+wget https://raw.githubusercontent.com/joinmisskey/bash-install/v1.6.5/ubuntu.sh -O ubuntu.sh; sudo bash ubuntu.sh
 ```
 
 example.comは自分のドメインに置き換えてください。
@@ -55,7 +55,7 @@ example.comは自分のドメインに置き換えてください。
 まずはダウンロードします。
 
 ```
-wget https://raw.githubusercontent.com/joinmisskey/bash-install/main/update.ubuntu.sh -O update.sh
+wget https://raw.githubusercontent.com/joinmisskey/bash-install/v1.6.5/update.ubuntu.sh -O update.sh
 ```
 
 アップデートしたいときにスクリプトを実行してください。
