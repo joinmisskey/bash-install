@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2021 aqz/tamaina, joinmisskey
+# Copyright 2023 aqz/tamaina, joinmisskey
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files (the "Software"),
@@ -18,7 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="1.6.5";
+version="2.0.0";
 
 tput setaf 4;
 echo "";
@@ -320,17 +320,6 @@ echo "Redis password:";
 read -r -p "> " redis_pass;
 #endregion
 
-#region syslog
-tput setaf 3;
-echo "";
-echo "Syslog setting";
-tput setaf 7;
-echo "Syslog host: ";
-read -r -p "> " -e -i "$misskey_localhost" syslog_host;
-echo "Syslog port: ";
-read -r -p "> " -e -i "514" syslog_port;
-#endregion
-
 tput setaf 7;
 echo "";
 echo "OK. It will automatically install what you need. This will take some time.";
@@ -462,10 +451,8 @@ redis:
 # ID type
 id: 'aid'
 
-# syslog
-syslog:
-  host: '$syslog_host'
-  port: '$syslog_port'
+# Sign to ActivityPub GET request (default: true)
+signToActivityPubGet: true
 _EOF
 MKEOF
 #endregion
@@ -548,10 +535,19 @@ tput setaf 7;
 apt update -y;
 apt install -y$([ $method == "systemd" ] && echo " nodejs" || echo " docker-ce docker-ce-cli containerd.io")$($redis_local && echo " redis")$($nginx_local && echo " nginx");
 
+if [ $method == "systemd" ]; then
+	tput setaf 3;
+	echo "Process: corepack enable;"
+	tput setaf 7;
+	corepack enable;
+fi
+
 echo "Display: Versions;"
 if [ $method == "systemd" ]; then
 	echo "node";
 	node -v;
+	echo "corepack";
+	corepack -v;
 else
 	echo "docker";
 	docker --version;
@@ -780,17 +776,17 @@ cd "$misskey_directory";
 tput setaf 3;
 echo "Process: install npm packages;"
 tput setaf 7;
-npx yarn install --production;
+NODE_ENV=production yarn install --immutable;
 
 tput setaf 3;
 echo "Process: build misskey;"
 tput setaf 7;
-NODE_OPTIONS=--max_old_space_size=3072 NODE_ENV=production npm run build;
+NODE_OPTIONS=--max_old_space_size=3072 NODE_ENV=production yarn run build;
 
 tput setaf 3;
 echo "Process: initialize database;"
 tput setaf 7;
-NODE_OPTIONS=--max_old_space_size=3072 npm run init;
+NODE_OPTIONS=--max_old_space_size=3072 yarn run init;
 
 tput setaf 3;
 echo "Check: If Misskey starts correctly;"

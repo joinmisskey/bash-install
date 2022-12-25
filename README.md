@@ -1,10 +1,11 @@
-# Misskey install shell script v1.6.4
+# Misskey install shell script v2.0.0
 Misskeyを簡単にインストールするためのシェルスクリプトができました！
 
 いくつかの質問に答えるだけで、UbuntuサーバーへMisskey(v12)を簡単にインストールできます！
 
 また、アップデートスクリプトもあります。
 
+[v12の場合はこちら](https://github.com/joinmisskey/bash-install/blob/a096e874f93d493aa68975a31be9ce12d644e767/README.md)  
 [**English version**](./README.en.md)
 
 ## ライセンス
@@ -221,7 +222,7 @@ systemdの場合では、yarn installに失敗している可能性がありま�
 Misskeyディレクトリで次の内容を実行し、もう一度アップデートを実行してみてください。
 
 ```
-npm run cleanall
+yarn run clean-all
 ```
 
 journalctlでログを確認すると、たいていre2が云々という記述が見当たります。

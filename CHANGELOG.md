@@ -1,3 +1,21 @@
+# v2
+For Misskey v13
+
+## v2.0.0
+
+Misskey v13用にスクリプトを書き換えました。
+
+- corepackおよびyarn v3を使用  
+  ```
+  sudo corepack enable
+  ```
+- syslogを指定しないようにしました。  
+  **default.ymlからsyslog:以下の3行を削除してください。**
+- `signToActivityPubGet: true`を設定するようにしました。default.ymlに追加してください。
+
+# v1
+For Misskey v12
+
 ## v1.6.5
 update.ubuntu.shで`docker image prune`するように
 
