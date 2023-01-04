@@ -453,6 +453,14 @@ id: 'aid'
 
 # Sign to ActivityPub GET request (default: true)
 signToActivityPubGet: true
+
+proxyBypassHosts:
+  - api.deepl.com
+  - api-free.deepl.com
+  - www.recaptcha.net
+  - hcaptcha.com
+  - challenges.cloudflare.com
+  - summaly.arkjp.net
 _EOF
 MKEOF
 #endregion
