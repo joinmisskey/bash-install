@@ -16,7 +16,9 @@ Misskey v13用にスクリプトを書き換えました。
 
 その他
 
+- nginxのインストール方法を公式のものに変更しました。
 - nginx設定時、ポート解放を行わないようにできるようにしました。
+- Cloudflare未設定時、certbotをnginx経由(--webroot)で実行するようにしました。
 
 # v1
 For Misskey v12

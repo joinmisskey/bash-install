@@ -501,30 +501,21 @@ if $nginx_local; then
 	fi
 
 	tput setaf 3;
-	echo "Process: prepare certificate;"
-	tput setaf 7;
-	if $cloudflare; then
-		certbot certonly -t -n --agree-tos --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini --dns-cloudflare-propagation-seconds 60 --server https://acme-v02.api.letsencrypt.org/directory $([ ${#hostarr[*]} -eq 2 ] && echo " -d $host -d *.$host" || echo " -d $host") -m "$cf_mail";
-	else
-		certbot certonly -t -n --agree-tos --standalone$([ ${#hostarr[*]} -eq 2 ] && echo " -d $host" || echo " -d $host") -m "$cf_mail";
-	fi
-
-	tput setaf 3;
 	echo "Process: prepare nginx;"
 	tput setaf 7;
-	echo "deb http://nginx.org/packages/ubuntu $(lsb_release -cs) nginx" | tee /etc/apt/sources.list.d/nginx.list;
-	curl -o /tmp/nginx_signing.key https://nginx.org/keys/nginx_signing.key;
+	curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | sudo tee /usr/share/keyrings/nginx-archive-keyring.gpg > /dev/null;
 	tput setaf 2;
 	echo "Check: nginx gpg key;";
 	tput setaf 7;
-	if gpg --dry-run --quiet --import --import-options show-only /tmp/nginx_signing.key | grep -q 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62; then
+	if gpg --dry-run --quiet --no-keyring --import --import-options import-show /usr/share/keyrings/nginx-archive-keyring.gpg | grep -q 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62; then
 		echo "	OK.";
 	else
 		tput setaf 1;
 		echo "	NG.";
 		exit 1;
 	fi
-	mv /tmp/nginx_signing.key /etc/apt/trusted.gpg.d/nginx_signing.asc;
+	echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/ubuntu $(lsb_release -cs) nginx" | sudo tee /etc/apt/sources.list.d/nginx.list;
+    echo -e "Package: *\nPin: origin nginx.org\nPin: release o=nginx\nPin-Priority: 900\n" | sudo tee /etc/apt/preferences.d/99nginx;
 fi
 
 if [ $method == "systemd" ]; then
@@ -617,7 +608,24 @@ server {
     location /.well-known/pki-validation/ { allow all; }
     location / { return 301 https://\$server_name\$request_uri; }
 }
+NGEOF
 
+tput setaf 3;
+echo "Process: prepare certificate;"
+tput setaf 7;
+nginx -t
+systemctl restart nginx;
+if $cloudflare; then
+	certbot certonly -t -n --agree-tos --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini --dns-cloudflare-propagation-seconds 60 --server https://acme-v02.api.letsencrypt.org/directory $([ ${#hostarr[*]} -eq 2 ] && echo " -d $host -d *.$host" || echo " -d $host") -m "$cf_mail";
+else
+	mkdir -p /var/www/html
+	certbot certonly -t -n --agree-tos --webroot -webroot-path /var/www/html $([ ${#hostarr[*]} -eq 2 ] && echo " -d $host" || echo " -d $host") -m "$cf_mail";
+fi
+
+tput setaf 3;
+echo "Process: add nginx config;"
+tput setaf 7;
+cat >> "/etc/nginx/conf.d/$host.conf" << NGEOF
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
