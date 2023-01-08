@@ -252,9 +252,11 @@ case "$yn" in
 				echo "Make sure that your DNS is configured to this machine.";
 				cloudflare=false
 
-				echo "";
-				echo "Enter Email address to register Let's Encrypt certificate";
-				read -r -p "> " cf_mail;
+				if $certbot; then
+					echo "";
+					echo "Enter Email address to register Let's Encrypt certificate";
+					read -r -p "> " cf_mail;
+				fi
 				;;
 			*)
 				cloudflare=true
