@@ -228,7 +228,6 @@ case "$yn" in
 			[Nn]|[Nn][Oo])
 				certbot=false
 				echo "OK, you don't setup certbot.";
-				echo "But you ";
 				;;
 			*)
 				certbot=true
