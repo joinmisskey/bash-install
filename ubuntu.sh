@@ -900,7 +900,7 @@ _EOF
 systemctl daemon-reload;
 systemctl enable "$host";
 systemctl start "$host";
-systemctl status "$host";
+systemctl status "$host" --no-pager;
 
 #endregion
 elif [ $method == "docker" ]; then
