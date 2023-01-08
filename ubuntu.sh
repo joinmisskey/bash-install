@@ -613,13 +613,13 @@ NGEOF
 tput setaf 3;
 echo "Process: prepare certificate;"
 tput setaf 7;
-nginx -t
+nginx -t;
 systemctl restart nginx;
 if $cloudflare; then
 	certbot certonly -t -n --agree-tos --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini --dns-cloudflare-propagation-seconds 60 --server https://acme-v02.api.letsencrypt.org/directory $([ ${#hostarr[*]} -eq 2 ] && echo " -d $host -d *.$host" || echo " -d $host") -m "$cf_mail";
 else
-	mkdir -p /var/www/html
-	certbot certonly -t -n --agree-tos --webroot -webroot-path /var/www/html $([ ${#hostarr[*]} -eq 2 ] && echo " -d $host" || echo " -d $host") -m "$cf_mail";
+	mkdir -p /var/www/html;
+	certbot certonly -t -n --agree-tos --webroot --webroot-path /var/www/html $([ ${#hostarr[*]} -eq 2 ] && echo " -d $host" || echo " -d $host") -m "$cf_mail";
 fi
 
 tput setaf 3;
