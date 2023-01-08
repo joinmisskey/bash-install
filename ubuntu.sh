@@ -865,7 +865,7 @@ NODE_OPTIONS=--max_old_space_size=3072 yarn run init;
 tput setaf 3;
 echo "Check: If Misskey starts correctly;"
 tput setaf 7;
-if timeout 20 npm start | grep -q "Now listening on port"; then
+if NODE_ENV=production timeout 40 npm start 2> /dev/null | grep -q "Now listening on port"; then
 	echo "	OK.";
 else
 	tput setaf 1;
