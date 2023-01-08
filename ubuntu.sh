@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2021 aqz/tamaina, joinmisskey
+# Copyright 2023 aqz/tamaina, joinmisskey
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files (the "Software"),
@@ -18,7 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="1.6.5";
+version="2.0.0";
 
 tput setaf 4;
 echo "";
@@ -177,6 +177,7 @@ case "$yn" in
 		echo "You should open ports manually.";
 		nginx_local=false;
 		cloudflare=false;
+		certbot=false;
 
 		echo "Misskey port: ";
 		read -r -p "> " -e -i "3000" misskey_port;
@@ -186,25 +187,52 @@ case "$yn" in
 		echo "Port 80 and 443 will be opened by modifying iptables.";
 		nginx_local=true;
 
-		misskey_port=3000;
-
 		tput setaf 3;
 		echo "";
 		tput setaf 7;
-		echo "Do you use ufw or iptables?:";
-		echo "Y = To use ufw / N = To use iptables";
+		echo "Do you want it to open ports, to setup ufw or iptables?:";
+		echo "u = To setup ufw / i = To setup iptables / N = Not to open ports";
+
+		read -r -p "[u/i/N] > " yn2
+		case "$yn2" in
+			[Uu])
+				echo "OK, it will use ufw.";
+				ufw=true
+				iptables=false
+				echo "SSH port: ";
+				read -r -p "> " -e -i "22" ssh_port;
+				;;
+			[Ii])
+				echo "OK, it will use iptables.";
+				ufw=false
+				iptables=true
+				echo "SSH port: ";
+				read -r -p "> " -e -i "22" ssh_port;
+				;;
+			*)
+				echo "OK, you should open ports manually.";
+				ufw=false
+				iptables=false
+				;;
+			esac
+
+		#region certbot
+		tput setaf 3;
+		echo "";
+		echo "Certbot setting";
+		tput setaf 7;
+		echo "Do you want it to setup certbot to connect with https?:";
 
 		read -r -p "[Y/n] > " yn2
 		case "$yn2" in
 			[Nn]|[Nn][Oo])
-				echo "OK, it will use iptables.";
-				ufw=false
+				certbot=false
+				echo "OK, you don't setup certbot.";
 				;;
 			*)
-				echo "OK, it will use ufw.";
-				ufw=true
-				echo "SSH port: ";
-				read -r -p "> " -e -i "22" ssh_port;
+				certbot=true
+				echo "OK, you want to setup certbot.";
+				#endregion
 				;;
 			esac
 
@@ -224,9 +252,11 @@ case "$yn" in
 				echo "Make sure that your DNS is configured to this machine.";
 				cloudflare=false
 
-				echo "";
-				echo "Enter Email address to register Let's Encrypt certificate";
-				read -r -p "> " cf_mail;
+				if $certbot; then
+					echo "";
+					echo "Enter Email address to register Let's Encrypt certificate";
+					read -r -p "> " cf_mail;
+				fi
 				;;
 			*)
 				cloudflare=true
@@ -250,6 +280,10 @@ case "$yn" in
 				#endregion
 				;;
 			esac
+
+		echo "Tell me which port Misskey will watch: ";
+		echo "Misskey port: ";
+		read -r -p "> " -e -i "3000" misskey_port;
 		;;
 esac
 #endregion
@@ -320,17 +354,6 @@ echo "Redis password:";
 read -r -p "> " redis_pass;
 #endregion
 
-#region syslog
-tput setaf 3;
-echo "";
-echo "Syslog setting";
-tput setaf 7;
-echo "Syslog host: ";
-read -r -p "> " -e -i "$misskey_localhost" syslog_host;
-echo "Syslog port: ";
-read -r -p "> " -e -i "514" syslog_port;
-#endregion
-
 tput setaf 7;
 echo "";
 echo "OK. It will automatically install what you need. This will take some time.";
@@ -385,8 +408,8 @@ m_uid=$(id -u "$misskey_user")
 tput setaf 3;
 echo "Process: apt install #1;";
 tput setaf 7;
-apt update -y;
-apt install -y curl nano jq gnupg2 apt-transport-https ca-certificates lsb-release software-properties-common uidmap$($nginx_local && echo " certbot")$($nginx_local && ($ufw && echo " ufw" || echo " iptables-persistent"))$($cloudflare && echo " python3-certbot-dns-cloudflare")$([ $method != "docker_hub" ] && echo " git")$([ $method == "systemd" ] && echo " ffmpeg build-essential");
+apt -qq update -y;
+apt -qq install -y curl nano jq gnupg2 apt-transport-https ca-certificates lsb-release software-properties-common uidmap$($nginx_local && echo " certbot")$($nginx_local && ($ufw && echo " ufw" || $iptables && echo " iptables-persistent"))$($cloudflare && echo " python3-certbot-dns-cloudflare")$([ $method != "docker_hub" ] && echo " git")$([ $method == "systemd" ] && echo " ffmpeg build-essential");
 
 if [ $method != "docker_hub" ]; then
 #region work with misskey user
@@ -462,27 +485,37 @@ redis:
 # ID type
 id: 'aid'
 
-# syslog
-syslog:
-  host: '$syslog_host'
-  port: '$syslog_port'
+# Sign to ActivityPub GET request (default: true)
+signToActivityPubGet: true
+
+proxyBypassHosts:
+  - api.deepl.com
+  - api-free.deepl.com
+  - www.recaptcha.net
+  - hcaptcha.com
+  - challenges.cloudflare.com
+  - summaly.arkjp.net
 _EOF
 MKEOF
 #endregion
 
 if $nginx_local; then
-	tput setaf 3;
-	echo "Process: port open;"
-	tput setaf 7;
-
 	if $ufw; then
+		tput setaf 3;
+		echo "Process: port open by ufw;"
+		tput setaf 7;
+
 		ufw limit $ssh_port/tcp;
 		ufw default deny;
 		ufw allow 80;
 		ufw allow 443;
 		ufw --force enable;
 		ufw status;
-	else
+	elif $iptables; then
+		tput setaf 3;
+		echo "Process: port open by iptables;"
+		tput setaf 7;
+
 		grep -q -x -e "-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT" /etc/iptables/rules.v4 || iptables -I INPUT -p tcp --dport 80 -j ACCEPT;
 		grep -q -x -e "-A INPUT -p tcp -m tcp --dport 443 -j ACCEPT" /etc/iptables/rules.v4 || iptables -I INPUT -p tcp --dport 443 -j ACCEPT;
 		grep -q -x -e "-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT" /etc/iptables/rules.v6 || ip6tables -I INPUT -p tcp --dport 80 -j ACCEPT;
@@ -493,30 +526,21 @@ if $nginx_local; then
 	fi
 
 	tput setaf 3;
-	echo "Process: prepare certificate;"
-	tput setaf 7;
-	if $cloudflare; then
-		certbot certonly -t -n --agree-tos --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini --dns-cloudflare-propagation-seconds 60 --server https://acme-v02.api.letsencrypt.org/directory $([ ${#hostarr[*]} -eq 2 ] && echo " -d $host -d *.$host" || echo " -d $host") -m "$cf_mail";
-	else
-		certbot certonly -t -n --agree-tos --standalone$([ ${#hostarr[*]} -eq 2 ] && echo " -d $host" || echo " -d $host") -m "$cf_mail";
-	fi
-
-	tput setaf 3;
 	echo "Process: prepare nginx;"
 	tput setaf 7;
-	echo "deb http://nginx.org/packages/ubuntu $(lsb_release -cs) nginx" | tee /etc/apt/sources.list.d/nginx.list;
-	curl -o /tmp/nginx_signing.key https://nginx.org/keys/nginx_signing.key;
+	curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | sudo tee /usr/share/keyrings/nginx-archive-keyring.gpg > /dev/null;
 	tput setaf 2;
 	echo "Check: nginx gpg key;";
 	tput setaf 7;
-	if gpg --dry-run --quiet --import --import-options show-only /tmp/nginx_signing.key | grep -q 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62; then
+	if gpg --dry-run --quiet --no-keyring --import --import-options import-show /usr/share/keyrings/nginx-archive-keyring.gpg | grep -q 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62; then
 		echo "	OK.";
 	else
 		tput setaf 1;
 		echo "	NG.";
 		exit 1;
 	fi
-	mv /tmp/nginx_signing.key /etc/apt/trusted.gpg.d/nginx_signing.asc;
+	echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/ubuntu $(lsb_release -cs) nginx" | sudo tee /etc/apt/sources.list.d/nginx.list;
+    echo -e "Package: *\nPin: origin nginx.org\nPin: release o=nginx\nPin-Priority: 900\n" | sudo tee /etc/apt/preferences.d/99nginx;
 fi
 
 if [ $method == "systemd" ]; then
@@ -545,13 +569,22 @@ fi
 tput setaf 3;
 echo "Process: apt install #2;"
 tput setaf 7;
-apt update -y;
-apt install -y$([ $method == "systemd" ] && echo " nodejs" || echo " docker-ce docker-ce-cli containerd.io")$($redis_local && echo " redis")$($nginx_local && echo " nginx");
+apt -qq update -y;
+apt -qq install -y$([ $method == "systemd" ] && echo " nodejs" || echo " docker-ce docker-ce-cli containerd.io")$($redis_local && echo " redis")$($nginx_local && echo " nginx");
+
+if [ $method == "systemd" ]; then
+	tput setaf 3;
+	echo "Process: corepack enable;"
+	tput setaf 7;
+	corepack enable;
+fi
 
 echo "Display: Versions;"
 if [ $method == "systemd" ]; then
 	echo "node";
 	node -v;
+	echo "corepack";
+	corepack -v;
 else
 	echo "docker";
 	docker --version;
@@ -572,6 +605,7 @@ if $redis_local; then
 	systemctl start redis-server;
 	systemctl enable redis-server;
 fi
+#region nginx_setup
 if $nginx_local; then
 tput setaf 3;
 echo "Process: create nginx config;"
@@ -598,9 +632,36 @@ server {
     root /var/www/html;
     location /.well-known/acme-challenge/ { allow all; }
     location /.well-known/pki-validation/ { allow all; }
+
+NGEOF
+
+#region certbot_setup
+if $certbot; then
+tput setaf 3;
+echo "Process: add nginx config (certbot-1);"
+tput setaf 7;
+cat >> "/etc/nginx/conf.d/$host.conf" << NGEOF
+	# with https
     location / { return 301 https://\$server_name\$request_uri; }
 }
+NGEOF
 
+tput setaf 3;
+echo "Process: prepare certificate;"
+tput setaf 7;
+nginx -t;
+systemctl restart nginx;
+if $cloudflare; then
+	certbot certonly -t -n --agree-tos --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini --dns-cloudflare-propagation-seconds 60 --server https://acme-v02.api.letsencrypt.org/directory $([ ${#hostarr[*]} -eq 2 ] && echo " -d $host -d *.$host" || echo " -d $host") -m "$cf_mail";
+else
+	mkdir -p /var/www/html;
+	certbot certonly -t -n --agree-tos --webroot --webroot-path /var/www/html $([ ${#hostarr[*]} -eq 2 ] && echo " -d $host" || echo " -d $host") -m "$cf_mail";
+fi
+
+tput setaf 3;
+echo "Process: add nginx config (certbot-2);"
+tput setaf 7;
+cat >> "/etc/nginx/conf.d/$host.conf" << NGEOF
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
@@ -620,13 +681,20 @@ server {
     ssl_prefer_server_ciphers off;
     ssl_stapling on;
     ssl_stapling_verify on;
+NGEOF
+fi
+#endregion
 
+tput setaf 3;
+echo "Process: add nginx config;"
+tput setaf 7;
+cat >> "/etc/nginx/conf.d/$host.conf" << NGEOF
     # Change to your upload limit
     client_max_body_size 80m;
 
     # Proxy to Node
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:$misskey_port;
         proxy_set_header Host \$host;
         proxy_http_version 1.1;
         proxy_redirect off;
@@ -644,6 +712,7 @@ $($cloudflare || echo "        proxy_set_header X-Forwarded-Proto https;")
         proxy_cache cache1;
         proxy_cache_lock on;
         proxy_cache_use_stale updating;
+		proxy_force_ranges on;
         add_header X-Cache \$upstream_cache_status;
     }
 }
@@ -670,12 +739,13 @@ else
 fi
 
 fi
+#endregion
 
 if $db_local; then
 	tput setaf 3;
 	echo "Process: install postgres;"
 	tput setaf 7;
-	apt install -y postgresql-common;
+	apt -qq install -y postgresql-common;
 	sh /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -i -v 15;
 
 	tput setaf 3;
@@ -716,7 +786,7 @@ if [ $method != "systemd" ]; then
 		echo "Process: modify postgres confs;"
 		tput setaf 7;
 		pg_hba=$(sudo -iu postgres psql -t -P format=unaligned -c 'show hba_file')
-		pg_conf=$(sudo -iu postgres psql -t -P format=unaligned -c 'show config_file')
+		pg_conf=$(s  udo -iu postgres psql -t -P format=unaligned -c 'show config_file')
 		[[ $(ip addr | grep "$docker_host_ip") =~ /([0-9]+) ]] && subnet=${BASH_REMATCH[1]};
 
 		hba_text="host $db_name $db_user $docker_host_ip/$subnet md5"
@@ -780,27 +850,26 @@ cd "$misskey_directory";
 tput setaf 3;
 echo "Process: install npm packages;"
 tput setaf 7;
-npx yarn install --production;
+NODE_ENV=production yarn install --immutable;
 
 tput setaf 3;
 echo "Process: build misskey;"
 tput setaf 7;
-NODE_OPTIONS=--max_old_space_size=3072 NODE_ENV=production npm run build;
+NODE_OPTIONS=--max_old_space_size=3072 NODE_ENV=production yarn run build;
 
 tput setaf 3;
 echo "Process: initialize database;"
 tput setaf 7;
-NODE_OPTIONS=--max_old_space_size=3072 npm run init;
+NODE_OPTIONS=--max_old_space_size=3072 yarn run init;
 
 tput setaf 3;
 echo "Check: If Misskey starts correctly;"
 tput setaf 7;
-if timeout 20 npm start | grep -q "Now listening on port"; then
+if NODE_ENV=production timeout 40 npm start 2> /dev/null | grep -q "Now listening on port"; then
 	echo "	OK.";
 else
 	tput setaf 1;
 	echo "	NG.";
-	exit 1;
 fi
 MKEOF
 #endregion
@@ -819,8 +888,8 @@ ExecStart=$(command -v npm) start
 WorkingDirectory=/home/$misskey_user/$misskey_directory
 Environment="NODE_ENV=production"
 TimeoutSec=60
-StandardOutput=syslog
-StandardError=syslog
+StandardOutput=journal
+StandardError=journal
 SyslogIdentifier="$host"
 Restart=always
 
@@ -831,7 +900,7 @@ _EOF
 systemctl daemon-reload;
 systemctl enable "$host";
 systemctl start "$host";
-systemctl status "$host";
+systemctl status "$host" --no-pager;
 
 #endregion
 elif [ $method == "docker" ]; then

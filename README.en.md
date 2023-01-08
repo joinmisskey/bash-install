@@ -5,6 +5,7 @@ You can install misskey on an Ubuntu server just by answering some questions.
 
 There is also an update script.
 
+[For v12](https://github.com/joinmisskey/bash-install/blob/a096e874f93d493aa68975a31be9ce12d644e767/README.en.md)  
 [**日本語版はこちら**](./README.md)
 
 ## License
@@ -207,14 +208,12 @@ requirepassとbindを`/etc/redis/misskey.conf`で設定しています。
 Dockerでは、起動後にマイグレーションをするため、すぐにアクセスできません。  
 マイグレーションが終わっているかどうか確認してみてください。
 
-それでもアップデート後にアクセスできない、ということが稀にあります。
-
-もしくは、yarn installに失敗しているというものです。  
+systemdの場合では、yarn installに失敗している可能性があります。  
 
 Misskeyディレクトリで次の内容を実行し、もう一度アップデートを実行してみてください。
 
 ```
-npm run cleanall
+yarn run clean-all
 ```
 
 journalctlでログを確認すると、たいていre2が云々という記述が見当たります。

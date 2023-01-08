@@ -1,3 +1,31 @@
+# v2
+For Misskey v13
+
+## v2.0.0
+
+Misskey v13用にスクリプトを書き換えました。
+
+- corepackおよびyarn v3を使用  
+  ```
+  sudo corepack enable
+  ```
+- syslogを指定しないようにしました。  
+  **default.ymlからsyslog:以下の3行を削除してください。**
+- `signToActivityPubGet: true`を設定するようにしました。default.ymlに追加してください。
+- `proxyBypassHosts`を設定するようにしました。必要に応じて設定を変更してください。
+
+その他
+
+- nginxのインストール方法を公式のものに変更しました。
+- nginx設定時、ポート解放を行わないようにできるようにしました。
+- nginx設定時、certbotを設定しない（port 80でのみ設定を行う）設定をできるようにしました。
+- certbot設定時、certbotはnginx経由(--webroot)で実行するようにしました。
+- nginx confで`proxy_force_ranges on;`を指定するようにしました。
+- nginx設定時でもMisskeyがウォッチするポートを指定できるようにしました。
+
+# v1
+For Misskey v12
+
 ## v1.6.5
 update.ubuntu.shで`docker image prune`するように
 
