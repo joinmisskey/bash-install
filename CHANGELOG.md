@@ -12,6 +12,11 @@ Misskey v13用にスクリプトを書き換えました。
 - syslogを指定しないようにしました。  
   **default.ymlからsyslog:以下の3行を削除してください。**
 - `signToActivityPubGet: true`を設定するようにしました。default.ymlに追加してください。
+- `proxyBypassHosts`を設定するようにしました。必要に応じて設定を変更してください。
+
+その他
+
+- nginx設定時、ポート解放を行わないようにできるようにしました。
 
 # v1
 For Misskey v12

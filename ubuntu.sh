@@ -191,20 +191,29 @@ case "$yn" in
 		tput setaf 3;
 		echo "";
 		tput setaf 7;
-		echo "Do you use ufw or iptables?:";
-		echo "Y = To use ufw / N = To use iptables";
+		echo "Do you want it to open ports, to setup ufw or iptables?:";
+		echo "u = To setup ufw / i = To setup iptables / N = Not to open ports";
 
 		read -r -p "[Y/n] > " yn2
 		case "$yn2" in
-			[Nn]|[Nn][Oo])
-				echo "OK, it will use iptables.";
-				ufw=false
-				;;
-			*)
+			[Uu])
 				echo "OK, it will use ufw.";
 				ufw=true
+				iptables=false
 				echo "SSH port: ";
 				read -r -p "> " -e -i "22" ssh_port;
+				;;
+			[Ii])
+				echo "OK, it will use iptables.";
+				ufw=false
+				iptables=true
+				echo "SSH port: ";
+				read -r -p "> " -e -i "22" ssh_port;
+				;;
+			*)
+				echo "OK, you should open ports manually.";
+				ufw=false
+				iptables=false
 				;;
 			esac
 
@@ -375,7 +384,7 @@ tput setaf 3;
 echo "Process: apt install #1;";
 tput setaf 7;
 apt update -y;
-apt install -y curl nano jq gnupg2 apt-transport-https ca-certificates lsb-release software-properties-common uidmap$($nginx_local && echo " certbot")$($nginx_local && ($ufw && echo " ufw" || echo " iptables-persistent"))$($cloudflare && echo " python3-certbot-dns-cloudflare")$([ $method != "docker_hub" ] && echo " git")$([ $method == "systemd" ] && echo " ffmpeg build-essential");
+apt install -y curl nano jq gnupg2 apt-transport-https ca-certificates lsb-release software-properties-common uidmap$($nginx_local && echo " certbot")$($nginx_local && ($ufw && echo " ufw" || $iptables && echo " iptables-persistent"))$($cloudflare && echo " python3-certbot-dns-cloudflare")$([ $method != "docker_hub" ] && echo " git")$([ $method == "systemd" ] && echo " ffmpeg build-essential");
 
 if [ $method != "docker_hub" ]; then
 #region work with misskey user
@@ -466,18 +475,22 @@ MKEOF
 #endregion
 
 if $nginx_local; then
-	tput setaf 3;
-	echo "Process: port open;"
-	tput setaf 7;
-
 	if $ufw; then
+		tput setaf 3;
+		echo "Process: port open by ufw;"
+		tput setaf 7;
+
 		ufw limit $ssh_port/tcp;
 		ufw default deny;
 		ufw allow 80;
 		ufw allow 443;
 		ufw --force enable;
 		ufw status;
-	else
+	elif $iptables; then
+		tput setaf 3;
+		echo "Process: port open by iptables;"
+		tput setaf 7;
+
 		grep -q -x -e "-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT" /etc/iptables/rules.v4 || iptables -I INPUT -p tcp --dport 80 -j ACCEPT;
 		grep -q -x -e "-A INPUT -p tcp -m tcp --dport 443 -j ACCEPT" /etc/iptables/rules.v4 || iptables -I INPUT -p tcp --dport 443 -j ACCEPT;
 		grep -q -x -e "-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT" /etc/iptables/rules.v6 || ip6tables -I INPUT -p tcp --dport 80 -j ACCEPT;
