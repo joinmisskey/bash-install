@@ -408,8 +408,8 @@ m_uid=$(id -u "$misskey_user")
 tput setaf 3;
 echo "Process: apt install #1;";
 tput setaf 7;
-apt update -y;
-apt install -y curl nano jq gnupg2 apt-transport-https ca-certificates lsb-release software-properties-common uidmap$($nginx_local && echo " certbot")$($nginx_local && ($ufw && echo " ufw" || $iptables && echo " iptables-persistent"))$($cloudflare && echo " python3-certbot-dns-cloudflare")$([ $method != "docker_hub" ] && echo " git")$([ $method == "systemd" ] && echo " ffmpeg build-essential");
+apt -qq update -y;
+apt -qq install -y curl nano jq gnupg2 apt-transport-https ca-certificates lsb-release software-properties-common uidmap$($nginx_local && echo " certbot")$($nginx_local && ($ufw && echo " ufw" || $iptables && echo " iptables-persistent"))$($cloudflare && echo " python3-certbot-dns-cloudflare")$([ $method != "docker_hub" ] && echo " git")$([ $method == "systemd" ] && echo " ffmpeg build-essential");
 
 if [ $method != "docker_hub" ]; then
 #region work with misskey user
@@ -569,8 +569,8 @@ fi
 tput setaf 3;
 echo "Process: apt install #2;"
 tput setaf 7;
-apt update -y;
-apt install -y$([ $method == "systemd" ] && echo " nodejs" || echo " docker-ce docker-ce-cli containerd.io")$($redis_local && echo " redis")$($nginx_local && echo " nginx");
+apt -qq update -y;
+apt -qq install -y$([ $method == "systemd" ] && echo " nodejs" || echo " docker-ce docker-ce-cli containerd.io")$($redis_local && echo " redis")$($nginx_local && echo " nginx");
 
 if [ $method == "systemd" ]; then
 	tput setaf 3;
@@ -745,7 +745,7 @@ if $db_local; then
 	tput setaf 3;
 	echo "Process: install postgres;"
 	tput setaf 7;
-	apt install -y postgresql-common;
+	apt -qq install -y postgresql-common;
 	sh /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -i -v 15;
 
 	tput setaf 3;
