@@ -1,4 +1,4 @@
-# Misskey install shell script v1.6.5
+# Misskey install shell script v2.0.0
 Install Misskey with one shell script!  
 
 You can install misskey on an Ubuntu server just by answering some questions.  
