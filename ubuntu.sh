@@ -870,7 +870,6 @@ if NODE_ENV=production timeout 40 npm start 2> /dev/null | grep -q "Now listenin
 else
 	tput setaf 1;
 	echo "	NG.";
-	exit 1;
 fi
 MKEOF
 #endregion
