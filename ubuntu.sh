@@ -177,6 +177,7 @@ case "$yn" in
 		echo "You should open ports manually.";
 		nginx_local=false;
 		cloudflare=false;
+		certbot=false;
 
 		echo "Misskey port: ";
 		read -r -p "> " -e -i "3000" misskey_port;
@@ -185,8 +186,6 @@ case "$yn" in
 		echo "Nginx will be installed on this computer.";
 		echo "Port 80 and 443 will be opened by modifying iptables.";
 		nginx_local=true;
-
-		misskey_port=3000;
 
 		tput setaf 3;
 		echo "";
@@ -214,6 +213,27 @@ case "$yn" in
 				echo "OK, you should open ports manually.";
 				ufw=false
 				iptables=false
+				;;
+			esac
+
+		#region certbot
+		tput setaf 3;
+		echo "";
+		echo "Certbot setting";
+		tput setaf 7;
+		echo "Do you want it to setup certbot to connect with https?:";
+
+		read -r -p "[Y/n] > " yn2
+		case "$yn2" in
+			[Nn]|[Nn][Oo])
+				certbot=false
+				echo "OK, you don't setup certbot.";
+				echo "But you ";
+				;;
+			*)
+				certbot=true
+				echo "OK, you want to setup certbot.";
+				#endregion
 				;;
 			esac
 
@@ -259,6 +279,10 @@ case "$yn" in
 				#endregion
 				;;
 			esac
+
+		echo "Tell me which port Misskey will watch: ";
+		echo "Misskey port: ";
+		read -r -p "> " -e -i "3000" misskey_port;
 		;;
 esac
 #endregion
@@ -580,6 +604,7 @@ if $redis_local; then
 	systemctl start redis-server;
 	systemctl enable redis-server;
 fi
+#region nginx_setup
 if $nginx_local; then
 tput setaf 3;
 echo "Process: create nginx config;"
@@ -606,6 +631,16 @@ server {
     root /var/www/html;
     location /.well-known/acme-challenge/ { allow all; }
     location /.well-known/pki-validation/ { allow all; }
+
+NGEOF
+
+#region certbot_setup
+if $certbot; then
+tput setaf 3;
+echo "Process: add nginx config (certbot-1);"
+tput setaf 7;
+cat >> "/etc/nginx/conf.d/$host.conf" << NGEOF
+	# with https
     location / { return 301 https://\$server_name\$request_uri; }
 }
 NGEOF
@@ -623,7 +658,7 @@ else
 fi
 
 tput setaf 3;
-echo "Process: add nginx config;"
+echo "Process: add nginx config (certbot-2);"
 tput setaf 7;
 cat >> "/etc/nginx/conf.d/$host.conf" << NGEOF
 server {
@@ -645,13 +680,20 @@ server {
     ssl_prefer_server_ciphers off;
     ssl_stapling on;
     ssl_stapling_verify on;
+NGEOF
+fi
+#endregion
 
+tput setaf 3;
+echo "Process: add nginx config;"
+tput setaf 7;
+cat >> "/etc/nginx/conf.d/$host.conf" << NGEOF
     # Change to your upload limit
     client_max_body_size 80m;
 
     # Proxy to Node
     location / {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:$misskey_port;
         proxy_set_header Host \$host;
         proxy_http_version 1.1;
         proxy_redirect off;
@@ -669,6 +711,7 @@ $($cloudflare || echo "        proxy_set_header X-Forwarded-Proto https;")
         proxy_cache cache1;
         proxy_cache_lock on;
         proxy_cache_use_stale updating;
+		proxy_force_ranges on;
         add_header X-Cache \$upstream_cache_status;
     }
 }
@@ -695,6 +738,7 @@ else
 fi
 
 fi
+#endregion
 
 if $db_local; then
 	tput setaf 3;
@@ -741,7 +785,7 @@ if [ $method != "systemd" ]; then
 		echo "Process: modify postgres confs;"
 		tput setaf 7;
 		pg_hba=$(sudo -iu postgres psql -t -P format=unaligned -c 'show hba_file')
-		pg_conf=$(sudo -iu postgres psql -t -P format=unaligned -c 'show config_file')
+		pg_conf=$(s  udo -iu postgres psql -t -P format=unaligned -c 'show config_file')
 		[[ $(ip addr | grep "$docker_host_ip") =~ /([0-9]+) ]] && subnet=${BASH_REMATCH[1]};
 
 		hba_text="host $db_name $db_user $docker_host_ip/$subnet md5"
