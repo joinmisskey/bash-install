@@ -194,7 +194,7 @@ case "$yn" in
 		echo "Do you want it to open ports, to setup ufw or iptables?:";
 		echo "u = To setup ufw / i = To setup iptables / N = Not to open ports";
 
-		read -r -p "[Y/n] > " yn2
+		read -r -p "[u/i/N] > " yn2
 		case "$yn2" in
 			[Uu])
 				echo "OK, it will use ufw.";
