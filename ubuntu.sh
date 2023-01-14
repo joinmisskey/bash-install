@@ -786,7 +786,7 @@ if [ $method != "systemd" ]; then
 		echo "Process: modify postgres confs;"
 		tput setaf 7;
 		pg_hba=$(sudo -iu postgres psql -t -P format=unaligned -c 'show hba_file')
-		pg_conf=$(s  udo -iu postgres psql -t -P format=unaligned -c 'show config_file')
+		pg_conf=$(sudo -iu postgres psql -t -P format=unaligned -c 'show config_file')
 		[[ $(ip addr | grep "$docker_host_ip") =~ /([0-9]+) ]] && subnet=${BASH_REMATCH[1]};
 
 		hba_text="host $db_name $db_user $docker_host_ip/$subnet md5"
