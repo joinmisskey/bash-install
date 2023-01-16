@@ -94,7 +94,7 @@ pnpm run clean;
 tput setaf 3;
 echo "Process: pnpm install;";
 tput setaf 7;
-NODE_ENV=production pnpm install --immutable;
+NODE_ENV=production pnpm install --frozen-lockfile;
 
 tput setaf 3;
 echo "Process: build misskey;";
