@@ -1,5 +1,12 @@
+# v3
+For Misskey v13 later RC (since 13.0.0-rc.10)
+
+## v3.0.0
+- pnpmを使用するようになったため追従  
+  特にマイグレーションは必要ありません。アップデートスクリプトを更新してご利用ください。
+
 # v2
-For Misskey v13
+For Misskey v13 Alpha, Beta and early RC
 
 ## v2.0.1
 Docker使用時にインストールに失敗するのを修正しました

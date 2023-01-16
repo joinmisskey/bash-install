@@ -1,4 +1,4 @@
-# Misskey install shell script v2.0.1
+# Misskey install shell script v3.0.0
 Install Misskey with one shell script!  
 
 You can install misskey on an Ubuntu server just by answering some questions.  
@@ -43,6 +43,9 @@ wget https://raw.githubusercontent.com/joinmisskey/bash-install/main/ubuntu.sh -
 
 ### 4. To update
 There is also an update script.
+
+The update script does not update the environment.  
+Please refer to CHANGELOG (Japanese) and [GitHub release list (English)](https://github.com/joinmisskey/bash-install/releases) and perform migration operations accordingly.
 
 First, download the script.
 
@@ -208,12 +211,12 @@ requirepassとbindを`/etc/redis/misskey.conf`で設定しています。
 Dockerでは、起動後にマイグレーションをするため、すぐにアクセスできません。  
 マイグレーションが終わっているかどうか確認してみてください。
 
-systemdの場合では、yarn installに失敗している可能性があります。  
+systemdの場合では、pnpm installに失敗している可能性があります。  
 
 Misskeyディレクトリで次の内容を実行し、もう一度アップデートを実行してみてください。
 
 ```
-yarn run clean-all
+pnpm run clean-all
 ```
 
 journalctlでログを確認すると、たいていre2が云々という記述が見当たります。

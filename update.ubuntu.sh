@@ -18,7 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="2.0.0";
+version="3.0.0";
 
 tput setaf 2;
 echo "Check: root user;";
@@ -89,22 +89,22 @@ cd ~/$misskey_directory;
 tput setaf 3;
 echo "Process: clean;";
 tput setaf 7;
-yarn run clean;
+pnpm run clean;
 
 tput setaf 3;
-echo "Process: yarn install;";
+echo "Process: pnpm install;";
 tput setaf 7;
-NODE_ENV=production yarn install --immutable;
+NODE_ENV=production pnpm install --immutable;
 
 tput setaf 3;
 echo "Process: build misskey;";
 tput setaf 7;
-NODE_OPTIONS=--max_old_space_size=3072 NODE_ENV=production yarn run build;
+NODE_OPTIONS=--max_old_space_size=3072 NODE_ENV=production pnpm run build;
 
 tput setaf 3;
 echo "Process: migrate db;";
 tput setaf 7;
-NODE_OPTIONS=--max_old_space_size=3072 yarn run migrate;
+NODE_OPTIONS=--max_old_space_size=3072 pnpm run migrate;
 MKEOF
 #endregion
 

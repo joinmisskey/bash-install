@@ -1,4 +1,4 @@
-# Misskey install shell script v2.0.1
+# Misskey install shell script v3.0.0
 
 Misskeyを簡単にインストールするためのシェルスクリプトができました！
 
@@ -53,6 +53,8 @@ example.comは自分のドメインに置き換えてください。
 
 ### 4. アップデートする
 アップデートのためのスクリプトもあります。
+
+アップデートスクリプトは、環境のアップデートは行いません。CHANGELOG（日本語）および[GitHubのリリース一覧（英語）](https://github.com/joinmisskey/bash-install/releases)を参考に、適宜マイグレーション操作を行なってください。
 
 まずはダウンロードします。
 
@@ -218,12 +220,12 @@ requirepassとbindを`/etc/redis/misskey.conf`で設定しています。
 Dockerでは、起動後にマイグレーションをするため、すぐにアクセスできません。  
 マイグレーションが終わっているかどうか確認してみてください。
 
-systemdの場合では、yarn installに失敗している可能性があります。  
+systemdの場合では、pnpm installに失敗している可能性があります。  
 
 Misskeyディレクトリで次の内容を実行し、もう一度アップデートを実行してみてください。
 
 ```
-yarn run clean-all
+pnpm run clean-all
 ```
 
 journalctlでログを確認すると、たいていre2が云々という記述が見当たります。
