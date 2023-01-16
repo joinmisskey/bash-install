@@ -1,5 +1,5 @@
 # v3
-For Misskey v13 later RC (since 13.0.0-rc.10)
+For Misskey v13 production and later RC (since 13.0.0-rc.10)
 
 ## v3.0.0
 - pnpmを使用するようになったため追従  
