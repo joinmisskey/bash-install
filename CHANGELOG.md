@@ -16,6 +16,7 @@ Docker使用時にインストールに失敗するのを修正しました
 Misskey v13用にスクリプトを書き換えました。
 
 - corepackおよびyarn v3を使用  
+  corepack enableを実行してください。
   ```
   sudo corepack enable
   ```
