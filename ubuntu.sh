@@ -397,7 +397,7 @@ tput setaf 3;
 echo "Process: add misskey user ($misskey_user);";
 tput setaf 7;
 if cut -d: -f1 /etc/passwd | grep -q -x "$misskey_user"; then
-	echo "$misskey_user exisits already. No user will be created.";
+	echo "$misskey_user exists already. No user will be created.";
 else
 	useradd -m -U -s /bin/bash "$misskey_user";
 fi
