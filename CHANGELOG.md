@@ -1,6 +1,28 @@
 # v3
 For Misskey v13 production and later RC (since 13.0.0-rc.10)
 
+## v3.1.0
+Node.js v20をインストールするように変更しました。
+
+アップデート前にNode.jsのアップデートを行う必要があります。
+
+まず、次のコマンドでv20をインストールします。
+
+```
+curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+```
+
+次に、Misskeyをインストールしたディレクトリに移動し、npmモジュールの更新作業を行います。
+
+```
+sudo -su misskey
+cd misskey
+pnpm i --frozen-lockfile --force
+```
+
+あとは、通常通りアップデートスクリプトを実行します。
+
 ## v3.0.0
 - pnpmを使用するようになったため追従  
   特にマイグレーションは必要ありません。アップデートスクリプトを更新してご利用ください。

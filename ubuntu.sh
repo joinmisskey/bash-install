@@ -547,7 +547,7 @@ if [ $method == "systemd" ]; then
 	tput setaf 3;
 	echo "Process: prepare node.js;"
 	tput setaf 7;
-	curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -;
+	curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -;
 else
 	tput setaf 3;
 	echo "Process: prepare docker;"
