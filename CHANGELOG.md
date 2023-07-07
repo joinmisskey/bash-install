@@ -16,9 +16,10 @@ sudo apt install -y nodejs
 次に、Misskeyをインストールしたディレクトリに移動し、npmモジュールの更新作業を行います。
 
 ```
-sudo -su misskey
+sudo su - misskey
 cd misskey
 pnpm i --frozen-lockfile --force
+exit
 ```
 
 あとは、通常通りアップデートスクリプトを実行します。
