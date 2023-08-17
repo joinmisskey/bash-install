@@ -751,7 +751,7 @@ if $db_local; then
 	tput setaf 3;
 	echo "Process: create user and database on postgres;"
 	tput setaf 7;
-	sudo -iu postgres psql -c "CREATE ROLE $db_user LOGIN CREATEDB PASSWORD '$db_pass';" -c "CREATE DATABASE $db_name OWNER $db_user;"
+	sudo -iu postgres psql -c "CREATE ROLE $db_user LOGIN PASSWORD '$db_pass';" -c "CREATE DATABASE $db_name OWNER $db_user;"
 fi
 
 #region docker setting
