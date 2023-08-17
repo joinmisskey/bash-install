@@ -3,6 +3,7 @@ For Misskey v13 production and later RC (since 13.0.0-rc.10)
 
 ## v3.2.0
 - systemd環境ではjemallocを使用するようにしました。
+  `sudo apt install libjemalloc-dev`を実行し、`/etc/systemd/system/example.com.service`の`Environment="NODE_ENV=production"`の下に`Environment="LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2"`を書き足してください。arm64環境では`x86_64`を`aarch64`にしてください.
 - インストール時にdefault.ymlで`proxyRemoteFiles: true`を指定するようになりました。
 - アップデート時に`-r`オプションで`apt full-upgrade`する際、確認画面が出ないように（未検証）
 
