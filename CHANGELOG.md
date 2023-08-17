@@ -1,6 +1,11 @@
 # v3
 For Misskey v13 production and later RC (since 13.0.0-rc.10)
 
+## v3.2.0
+- systemd環境ではjemallocを使用するようにしました。
+- インストール時にdefault.ymlで`proxyRemoteFiles: true`を指定するようになりました。
+- アップデート時に`-r`オプションで`apt full-upgrade`する際、確認画面が出ないように（未検証）
+
 ## v3.1.0
 Node.js v20をインストールするように変更しました。
 

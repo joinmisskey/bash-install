@@ -18,7 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="3.0.0";
+version="3.2.0";
 
 tput setaf 2;
 echo "Check: root user;";
@@ -113,7 +113,7 @@ if [ $# == 1 ] && [ $1 == "-r" ]; then
 	echo "Process: apt upgrade;";
 	tput setaf 7;
 	apt update -y;
-	apt full-upgrade -y;
+	DEBIAN_FRONTEND=noninteractive APT_LISTCHANGES_FRONTEND=none apt full-upgrade -y;
 
 	tput setaf 3;
 	echo "reboot;";

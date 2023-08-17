@@ -18,7 +18,7 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="3.0.0";
+version="3.2.0";
 
 tput setaf 4;
 echo "";
@@ -485,6 +485,10 @@ redis:
 # ID type
 id: 'aid'
 
+# Proxy remote files (default: true)
+# Proxy remote files by this instance or mediaProxy to prevent remote files from running in remote domains.
+proxyRemoteFiles: true
+
 # Sign to ActivityPub GET request (default: true)
 signToActivityPubGet: true
 
@@ -570,7 +574,7 @@ tput setaf 3;
 echo "Process: apt install #2;"
 tput setaf 7;
 apt -qq update -y;
-apt -qq install -y$([ $method == "systemd" ] && echo " nodejs" || echo " docker-ce docker-ce-cli containerd.io")$($redis_local && echo " redis")$($nginx_local && echo " nginx");
+apt -qq install -y$([ $method == "systemd" ] && echo " nodejs libjemalloc-dev" || echo " docker-ce docker-ce-cli containerd.io")$($redis_local && echo " redis")$($nginx_local && echo " nginx");
 
 if [ $method == "systemd" ]; then
 	tput setaf 3;
@@ -887,6 +891,7 @@ User=$misskey_user
 ExecStart=$(command -v npm) start
 WorkingDirectory=/home/$misskey_user/$misskey_directory
 Environment="NODE_ENV=production"
+Environment="LD_PRELOAD=/usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2"
 TimeoutSec=60
 StandardOutput=journal
 StandardError=journal
