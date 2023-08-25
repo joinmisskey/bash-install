@@ -110,29 +110,22 @@ esac
 #endregion
 
 if [ $method == "docker" ]; then
-	if [ $arch == "amd64" ]; then
-		echo "Do you use image from Docker Hub?:";
-		echo "Y = To use Docker Hub image / N = To build Docker image in this machine"
-		read -r -p "[Y/n] > " yn
-		case "$yn" in
-			[Nn]|[Nn][Oo])
-				echo "Build docker image (local/misskey:latest).";
-				method=docker;
-				docker_repository="local/misskey:latest"
-				;;
-			*)
-				echo "Use Docker Hub image.";
-				method=docker_hub;
-				echo "Enter repository:tag of Docker Hub image:"
-				read -r -p "> " -e -i "misskey/misskey:latest" docker_repository;
-				;;
-		esac
-	else
-		echo "We should build docker manually because this is arm64 machine.";
-		method=docker;
-		docker_repository="local/misskey:latest"
-	fi
-
+	echo "Do you use image from Docker Hub?:";
+	echo "Y = To use Docker Hub image / N = To build Docker image in this machine"
+	read -r -p "[Y/n] > " yn
+	case "$yn" in
+		[Nn]|[Nn][Oo])
+			echo "Build docker image (local/misskey:latest).";
+			method=docker;
+			docker_repository="local/misskey:latest"
+			;;
+		*)
+			echo "Use Docker Hub image.";
+			method=docker_hub;
+			echo "Enter repository:tag of Docker Hub image:"
+			read -r -p "> " -e -i "misskey/misskey:latest" docker_repository;
+			;;
+	esac
 fi
 
 tput setaf 3;
