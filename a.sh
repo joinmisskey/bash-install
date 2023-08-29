@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 # Copyright 2023 aqz/tamaina, joinmisskey
 #
 # Permission is hereby granted, free of charge, to any person
@@ -75,6 +75,114 @@ function envtest() {
             exit 1;
             ;;
     esac
+}
+
+#Load options
+function load_options() {
+    #Load options
+    source "$2";
+
+    #Check if the options are valid
+    #Install method
+    if [ "$method" != "docker_hub" ] && [ "$method" != "docker_build" ] && [ "$method" != "systemd" ]; then
+        tput setaf 1; echo "Error: method is invalid."; tput setaf 7;
+        exit 1;
+    fi
+
+    #Misskey setting
+    if [ "$method" = "docker_hub" ]; then
+        if [ -z "$docker_repository" ]; then
+            tput setaf 1; echo "Error: docker_repository is not set."; tput setaf 7;
+            exit 1;
+        fi
+    else
+        if [ -z "$git_repository" ]; then
+            tput setaf 1; echo "Error: git_repository is not set."; tput setaf 7;
+            exit 1;
+        fi
+        if [ -z "$git_branch" ]; then
+            tput setaf 1; echo "Error: git_branch is not set."; tput setaf 7;
+            exit 1;
+        fi
+        if [ -z "$misskey_directory" ]; then
+            tput setaf 1; echo "Error: misskey_directory is not set."; tput setaf 7;
+            exit 1;
+        fi
+    fi
+    if [ -z "$misskey_user" ]; then
+        tput setaf 1; echo "Error: misskey_user is not set."; tput setaf 7;
+        exit 1;
+    fi
+    if [ -z "$host" ]; then
+        tput setaf 1; echo "Error: host is not set."; tput setaf 7;
+        exit 1;
+    fi
+    if [ -z "$misskey_port" ]; then
+        tput setaf 1; echo "Error: misskey_port is not set."; tput setaf 7;
+        exit 1;
+    fi
+
+    #Nginx setting
+    if [ "$nginx_local" != true ] && [ "$nginx_local" != false ]; then
+        tput setaf 1; echo "Error: nginx_local is invalid."; tput setaf 7;
+        exit 1;
+    fi
+    if [ "$nginx_local" = true]; then
+        
+}
+
+
+#Save options
+function save_options() {
+    #Temporarily allow undefined variables
+    set +u;
+    cat > options.txt <<-_EOF
+    #Install method
+    method=$method
+
+    #Misskey setting
+    docker_repository=$docker_repository
+    git_repository=$git_repository
+    git_branch=$git_branch
+    misskey_directory=$misskey_directory
+    misskey_user=$misskey_user
+    host=$host
+    misskey_port=$misskey_port
+
+    #Nginx setting
+    nginx_local=$nginx_local
+    ufw=$ufw
+    iptables=$iptables
+    certbot=$certbot
+    certbot_dns_cloudflare=$certbot_dns_cloudflare
+    certbot_http=$certbot_http
+    certbot_mailaddress=$certbot_mailaddress
+    certbot_cloudflare_mail=$certbot_cloudflare_mail
+    certbot_cloudflare_key=$certbot_cloudflare_key
+
+    #Database (PostgreSQL) setting
+    db_local=$db_local
+    db_host=$db_host
+    db_port=$db_port
+    db_user=$db_user
+    db_pass=$db_pass
+    db_name=$db_name
+
+    #Redis setting
+    redis_local=$redis_local
+    redis_host=$redis_host
+    redis_port=$redis_port
+    redis_pass=$redis_pass
+
+    #Swap setting
+    swap=$swap
+    swap_size=$swap_size
+
+    #Skip confirm
+    #skip_confirm=false
+_EOF
+    #Disallow undefined variables again
+    set -u;
 }
 
 #Select options
@@ -445,7 +553,8 @@ function confirm_options() {
 
     echo "";
 
-    if [ $skip_confirm != true ]; then
+    #Confirm options if skip_confirm is not true or not set
+    if [ -z ${skip_confirm+x} ] || [ $skip_confirm != true ]; then
         echo "Is this correct? [Y/n]";
         read -r -p "> " yn;
         case "$yn" in
@@ -467,12 +576,32 @@ function confirm_options() {
 function install() {
 }
 
-
+#Main
 function main() {
+    #First, check environment
     envtest;
-    #if envか因数があればoptionsをスキップ
-    options;
+
+    #Second, select options
+    #If a yaml file is specified with the -c option, load the file. Otherwise, run options.
+    if [ "$1" = "-c" ]; then
+        if [ -f "$2" ]; then
+            load_options;
+        else
+            tput setaf 1; echo "Error: $2 is not found or is not a file.";
+            exit 1;
+        fi
+    else
+        options;
+    fi
+
+    #Third, confirm options
     confirm_options;
+
+    #Fourth, save options
+    save_options;
+
+    #Fifth, install Misskey
+    install;
 }
 
 main;
