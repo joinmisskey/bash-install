@@ -20,7 +20,7 @@
 #
 
 #Version of this script
-version="3.2.0_srgr0";
+version="s0.1.0";
 
 #About this script
 tput setaf 4;
@@ -31,7 +31,8 @@ echo "";
 
 #Check environment(linux, root, arch)
 function envtest() {
-    tput setaf 2; echo "Checking environment..."; tput setaf 7;
+    tput setaf 3; echo "Checking environment..."; tput setaf 7;
+
     #Check if the script is running on Linux
     tput setaf 2; echo -n "Linux; "; tput setaf 7;
     if [ "$(command -v uname)" ]; then
@@ -79,6 +80,8 @@ function envtest() {
 
 #Load options
 function load_options() {
+    tput setaf 3; echo "Loading options from $2..."; tput setaf 7;
+
     #Load options
     source "$2";
 
@@ -127,66 +130,162 @@ function load_options() {
         tput setaf 1; echo "Error: nginx_local is invalid."; tput setaf 7;
         exit 1;
     fi
-    if [ "$nginx_local" = true]; then
-        
-}
+    if [ "$nginx_local" = true ]; then
+        if [ "$ufw" != true ] && [ "$ufw" != false ]; then
+            tput setaf 1; echo "Error: ufw is invalid."; tput setaf 7;
+            exit 1;
+        fi
+        if [ "$iptables" != true ] && [ "$iptables" != false ]; then
+            tput setaf 1; echo "Error: iptables is invalid."; tput setaf 7;
+            exit 1;
+        fi
+        if [ "$certbot" != true ] && [ "$certbot" != false ]; then
+            tput setaf 1; echo "Error: certbot is invalid."; tput setaf 7;
+            exit 1;
+        fi
+        if [ "$certbot" = true ]; then
+            if [ "$certbot_dns_cloudflare" != true ] && [ "$certbot_dns_cloudflare" != false ]; then
+                tput setaf 1; echo "Error: certbot_dns_cloudflare is invalid."; tput setaf 7;
+                exit 1;
+            fi
+            if [ "$certbot_http" != true ] && [ "$certbot_http" != false ]; then
+                tput setaf 1; echo "Error: certbot_http is invalid."; tput setaf 7;
+                exit 1;
+            fi
+            if [ "$certbot_dns_cloudflare" = true ]; then
+                if [ -z "$certbot_cloudflare_mail" ]; then
+                    tput setaf 1; echo "Error: certbot_cloudflare_mail is not set."; tput setaf 7;
+                    exit 1;
+                fi
+                if [ -z "$certbot_cloudflare_key" ]; then
+                    tput setaf 1; echo "Error: certbot_cloudflare_key is not set."; tput setaf 7;
+                    exit 1;
+                fi
+            else
+                if [ -z "$certbot_mailaddress" ]; then
+                    tput setaf 1; echo "Error: certbot_mailaddress is not set."; tput setaf 7;
+                    exit 1;
+                fi
+            fi
+        fi
+    fi
 
+    #Database (PostgreSQL) setting
+    if [ "$db_local" != true ] && [ "$db_local" != false ]; then
+        tput setaf 1; echo "Error: db_local is invalid."; tput setaf 7;
+        exit 1;
+    fi
+    if [ -z "$db_host" ]; then
+        tput setaf 1; echo "Error: db_host is not set."; tput setaf 7;
+        exit 1;
+    fi
+    if [ -z "$db_port" ]; then
+        tput setaf 1; echo "Error: db_port is not set."; tput setaf 7;
+        exit 1;
+    fi
+    if [ -z "$db_user" ]; then
+        tput setaf 1; echo "Error: db_user is not set."; tput setaf 7;
+        exit 1;
+    fi
+    if [ -z "$db_pass" ]; then
+        tput setaf 1; echo "Error: db_pass is not set."; tput setaf 7;
+        exit 1;
+    fi
+    if [ -z "$db_name" ]; then
+        tput setaf 1; echo "Error: db_name is not set."; tput setaf 7;
+        exit 1;
+    fi
+
+    #Redis setting
+    if [ "$redis_local" != true ] && [ "$redis_local" != false ]; then
+        tput setaf 1; echo "Error: redis_local is invalid."; tput setaf 7;
+        exit 1;
+    fi
+    if [ -z "$redis_host" ]; then
+        tput setaf 1; echo "Error: redis_host is not set."; tput setaf 7;
+        exit 1;
+    fi
+    if [ -z "$redis_port" ]; then
+        tput setaf 1; echo "Error: redis_port is not set."; tput setaf 7;
+        exit 1;
+    fi
+    if [ -z "$redis_pass" ]; then
+        tput setaf 1; echo "Error: redis_pass is not set."; tput setaf 7;
+        exit 1;
+    fi
+
+    #Swap setting
+    if [ "$swap" != true ] && [ "$swap" != false ]; then
+        tput setaf 1; echo "Error: swap is invalid."; tput setaf 7;
+        exit 1;
+    fi
+    if [ "$swap" = true ]; then
+        if [ -z "$swap_size" ]; then
+            tput setaf 1; echo "Error: swap_size is not set."; tput setaf 7;
+            exit 1;
+        fi
+    fi
+}
 
 #Save options
 function save_options() {
+    tput setaf 3; echo "Saving options to ./misskey_compose.txt..."; tput setaf 7;
+
     #Temporarily allow undefined variables
     set +u;
-    cat > options.txt <<-_EOF
-    #Install method
-    method=$method
+    cat > ./misskey_compose.txt <<-EOF
+	#Install method
+	method=$method
 
-    #Misskey setting
-    docker_repository=$docker_repository
-    git_repository=$git_repository
-    git_branch=$git_branch
-    misskey_directory=$misskey_directory
-    misskey_user=$misskey_user
-    host=$host
-    misskey_port=$misskey_port
+	#Misskey setting
+	docker_repository=$docker_repository
+	git_repository=$git_repository
+	git_branch=$git_branch
+	misskey_directory=$misskey_directory
+	misskey_user=$misskey_user
+	host=$host
+	misskey_port=$misskey_port
 
-    #Nginx setting
-    nginx_local=$nginx_local
-    ufw=$ufw
-    iptables=$iptables
-    certbot=$certbot
-    certbot_dns_cloudflare=$certbot_dns_cloudflare
-    certbot_http=$certbot_http
-    certbot_mailaddress=$certbot_mailaddress
-    certbot_cloudflare_mail=$certbot_cloudflare_mail
-    certbot_cloudflare_key=$certbot_cloudflare_key
+	#Nginx setting
+	nginx_local=$nginx_local
+	ufw=$ufw
+	iptables=$iptables
+	certbot=$certbot
+	certbot_dns_cloudflare=$certbot_dns_cloudflare
+	certbot_http=$certbot_http
+	certbot_mailaddress=$certbot_mailaddress
+	certbot_cloudflare_mail=$certbot_cloudflare_mail
+	certbot_cloudflare_key=$certbot_cloudflare_key
 
-    #Database (PostgreSQL) setting
-    db_local=$db_local
-    db_host=$db_host
-    db_port=$db_port
-    db_user=$db_user
-    db_pass=$db_pass
-    db_name=$db_name
+	#Database (PostgreSQL) setting
+	db_local=$db_local
+	db_host=$db_host
+	db_port=$db_port
+	db_user=$db_user
+	db_pass=$db_pass
+	db_name=$db_name
 
-    #Redis setting
-    redis_local=$redis_local
-    redis_host=$redis_host
-    redis_port=$redis_port
-    redis_pass=$redis_pass
+	#Redis setting
+	redis_local=$redis_local
+	redis_host=$redis_host
+	redis_port=$redis_port
+	redis_pass=$redis_pass
 
-    #Swap setting
-    swap=$swap
-    swap_size=$swap_size
+	#Swap setting
+	swap=$swap
+	swap_size=$swap_size
 
-    #Skip confirm
-    #skip_confirm=false
-_EOF
+	#Skip confirm
+	#skip_confirm=false
+	EOF
     #Disallow undefined variables again
     set -u;
 }
 
 #Select options
 function options() {
+    tput setaf 3; echo "Select options."; tput setaf 7;
+
     #---reg: Install method---
     tput setaf 3; echo "Install Method"; tput setaf 7;
 
@@ -370,10 +469,11 @@ function options() {
                         read -r -p "> " certbot_cloudflare_key;
 
                         mkdir -p /etc/cloudflare;
-                        cat > /etc/cloudflare/cloudflare.ini <<-_EOF
+                        cat > /etc/cloudflare/cloudflare.ini <<-EOF
                         dns_cloudflare_email = $certbot_cloudflare_mail
                         dns_cloudflare_api_key = $certbot_cloudflare_key
-_EOF
+						EOF
+                        #↑tab indent
 
                         chmod 600 /etc/cloudflare/cloudflare.ini;
                         ;;
@@ -484,13 +584,16 @@ _EOF
                 echo "Swap size: ${swap_size}MB";
                 ;;
         esac
+    else
+        #Need not to make swap
+        swap=false;
     fi
     #---end-reg---
 }
 
 #Confirm options
 function confirm_options() {
-    tput setaf 3; echo "Confirm"; tput setaf 7;
+    tput setaf 3; echo "Confirm options."; tput setaf 7;
 
     #---reg: Install method---
     echo "Install method: $method";
@@ -574,33 +677,715 @@ function confirm_options() {
 
 #Install Misskey
 function install() {
+    tput setaf 3; echo "Install Misskey."; tput setaf 7;
+
+    #Check if Misskey is already installed
+    if [ -f "/root/.misskey_installed" ]; then
+        tput setaf 1; echo "Error: Misskey is marked as already installed."; tput setaf 7;
+        echo "if you want to install Misskey forcibly, delete /root/.misskey_installed.";
+        exit 1;
+    fi
+    touch /root/.misskey_installed;
+
+    #Install Packeges
+    function install_packages() {
+        tput setaf 3; echo "Process: apt install #1;"; tput setaf 7;
+
+        apt -qq update -y;
+        apt -qq install -y curl nano jq gnupg2 apt-transport-https ca-certificates lsb-release software-properties-common uidmap$($certbot && echo " certbot")$($nginx_local && ($ufw && echo " ufw" || $iptables && echo " iptables-persistent"))$($certbot_dns_cloudflare && echo " python3-certbot-dns-cloudflare")$([ $method != "docker_hub" ] && echo " git")$([ $method == "systemd" ] && echo " ffmpeg build-essential");
+    }
+
+    #Create a user to run Misskey
+    function add_user() {
+        tput setaf 3; echo "Process: add misskey user ($misskey_user);"; tput setaf 7;
+
+        if ! id -u "$misskey_user" > /dev/null 2>&1; then
+            useradd -m -U -s /bin/bash "$misskey_user";
+        else
+            echo "Error: $misskey_user already exists.";
+        fi
+        echo "misskey_user=\"$misskey_user\"" > /root/.misskey.env
+        echo "version=\"$version\"" >> /root/.misskey.env
+    }
+
+    #Delete Misskey directory if exists
+    function delete_misskey_directory() {
+        tput setaf 3; echo "Process: delete misskey directory ($misskey_directory);"; tput setaf 7;
+
+        if [ -e "/home/$misskey_user/$misskey_directory" ]; then
+            rm -rf "/home/$misskey_user/$misskey_directory";
+        fi
+    }
+
+    #Clone git repository
+    function git_clone() {
+        tput setaf 3; echo "Process: clone git repository;"; tput setaf 7;
+
+        sudo -iu "$misskey_user" git clone -b "$branch" --depth 1 --recursive "$repository" "$misskey_directory";
+    }
+
+    #Create misskey config file
+    function create_config() {
+        tput setaf 3; echo "Process: create config;"; tput setaf 7;
+
+        sudo -iu "$misskey_user" cat > "$misskey_directory/.config/default.yml" <<-EOF
+		url: https://$host
+		port: $misskey_port
+
+		# PostgreSQL
+		db:
+		  host: '$db_host'
+		  port: $db_port
+		  db  : '$db_name'
+		  user: '$db_user'
+		  pass: '$db_pass'
+
+		# Redis
+		redis:
+		  host: '$redis_host'
+		  port: $redis_port
+		  pass: '$redis_pass'
+
+		# ID type
+		id: 'aid'
+
+		# Proxy remote files (default: true)
+		# Proxy remote files by this instance or mediaProxy to prevent remote files from running in remote domains.
+		proxyRemoteFiles: true
+
+		# Sign to ActivityPub GET request (default: true)
+		signToActivityPubGet: true
+
+		proxyBypassHosts:
+		  - api.deepl.com
+		  - api-free.deepl.com
+		  - www.recaptcha.net
+		  - hcaptcha.com
+		  - challenges.cloudflare.com
+		  - summaly.arkjp.net
+		EOF
+    }
+
+    #Open ports
+    function open_ports() {
+        tput setaf 3; echo "Process: open ports;"; tput setaf 7;
+
+        #ufw
+        if $ufw; then
+            ufe default deny;
+            ufw allow "$ssh_port/tcp";
+            ufw allow 80;
+            ufw allow 443;
+            ufw --force enable;
+            ufw status;
+        fi
+
+        #iptables
+        if $iptables; then
+            if iptables -C INPUT -p tcp --dport "$ssh_port" -j ACCEPT &> /dev/null; then
+                echo "iptables rule for port $ssh_port already exists"
+            else
+                iptables -I INPUT -p tcp --dport "$ssh_port" -j ACCEPT
+                echo "iptables rule for port $ssh_port added"
+            fi
+
+            if iptables -C INPUT -p tcp --dport 80 -j ACCEPT &> /dev/null; then
+                echo "iptables rule for port 80 already exists"
+            else
+                iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+                echo "iptables rule for port 80 added"
+            fi
+
+            if iptables -C INPUT -p tcp --dport 443 -j ACCEPT &> /dev/null; then
+                echo "iptables rule for port 443 already exists"
+            else
+                iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+                echo "iptables rule for port 443 added"
+            fi
+
+            if ip6tables -C INPUT -p tcp --dport "$ssh_port" -j ACCEPT &> /dev/null; then
+                echo "ip6tables rule for port $ssh_port already exists"
+            else
+                ip6tables -I INPUT -p tcp --dport "$ssh_port" -j ACCEPT
+                echo "ip6tables rule for port $ssh_port added"
+            fi
+
+            if ip6tables -C INPUT -p tcp --dport 80 -j ACCEPT &> /dev/null; then
+                echo "ip6tables rule for port 80 already exists"
+            else
+                ip6tables -I INPUT -p tcp --dport 80 -j ACCEPT
+                echo "ip6tables rule for port 80 added"
+            fi
+
+            if ip6tables -C INPUT -p tcp --dport 443 -j ACCEPT &> /dev/null; then
+                echo "ip6tables rule for port 443 already exists"
+            else
+                ip6tables -I INPUT -p tcp --dport 443 -j ACCEPT
+                echo "ip6tables rule for port 443 added"
+            fi
+
+            iptables-save > /etc/iptables/rules.v4
+            ip6tables-save > /etc/iptables/rules.v6
+            iptables -L;
+            ip6tables -L;
+        fi
+    }
+
+    #Install Nginx
+    function prepare_nginx() {
+        tput setaf 3; echo "Process: prepare nginx;"; tput setaf 7;
+
+        #Add nginx gpg key
+        curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | sudo tee /usr/share/keyrings/nginx-archive-keyring.gpg > /dev/null;
+
+        #Check nginx gpg key
+        if gpg --dry-run --quiet --no-keyring --import --import-options import-show /usr/share/keyrings/nginx-archive-keyring.gpg | grep -q 573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62; then
+            echo "OK. nginx gpg key is valid.";
+        else
+            tput setaf 1; echo "Error: nginx gpg key is invalid."; tput setaf 7;
+            exit 1;
+        fi
+
+        #Setup nginx repository
+        echo "deb [signed-by=/usr/share/keyrings/nginx-archive-keyring.gpg] http://nginx.org/packages/ubuntu $(lsb_release -cs) nginx" | sudo tee /etc/apt/sources.list.d/nginx.list;
+        echo -e "Package: *\nPin: origin nginx.org\nPin: release o=nginx\nPin-Priority: 900\n" | sudo tee /etc/apt/preferences.d/99nginx;
+
+        #Install nginx
+        apt -qq update -y;
+        apt -qq install -y nginx;
+
+        #Check version
+        tput setaf 3;
+        echo "Nginx version:";
+        nginx -v;
+        tput setaf 7;
+    }
+
+    #Install Nodejs
+    function prepare_nodejs() {
+        tput setaf 3; echo "Process: prepare nodejs;"; tput setaf 7;
+
+        #Add nodejs gpg key
+        curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -;
+
+        #Install nodejs
+        apt -qq update -y;
+        apt -qq install -y nodejs libjemalloc-dev;
+
+        #Check version
+        tput setaf 3;
+        echo "Nodejs version:";
+        node -v;
+        tput setaf 7;
+
+        #Enable corepack
+        corepack enable;
+
+        #Check version
+        tput setaf 3;
+        echo "Corepack version:";
+        corepack -v;
+        tput setaf 7;
+    }
+
+    #Install Docker
+    function prepare_docker() {
+        tput setaf 3; echo "Process: prepare docker;"; tput setaf 7;
+
+        #Add docker gpg key
+        if ! [ -e /usr/share/keyrings/docker-archive-keyring.gpg ]; then
+            curl -sL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+        fi
+
+        #Setup docker repository
+        echo "deb [arch=$arch signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+        #Install docker
+        apt -qq update -y;
+        apt install -qq -y docker-ce docker-ce-cli containerd.io;
+
+        #Check version
+        tput setaf 3;
+        echo "Docker version:";
+        docker --version;
+        tput setaf 7;
+    }
+
+    #Install Redis
+    function prepare_redis() {
+        tput setaf 3; echo "Process: prepare redis;"; tput setaf 7;
+
+        #Add redis gpg key
+        curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg;
+
+        #Setup redis repository
+        echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list;
+
+        #Install redis
+        apt -qq update -y;
+        apt -qq install -y redis;
+
+        #Check version
+        tput setaf 3;
+        echo "Redis version:";
+        redis-server --version;
+        tput setaf 7;
+    }
+
+    #Install PostgreSQL
+    function prepare_postgresql() {
+        tput setaf 3; echo "Process: prepare postgresql;"; tput setaf 7;
+
+        #Install postgresql
+        apt -qq install -y postgresql-common;
+
+        #Setup
+        sh /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -i -v 15;
+
+        #Check version
+        tput setaf 3;
+        echo "PostgreSQL version:";
+        psql --version;
+        tput setaf 7;
+    }
+
+    #Create DB and user
+    function create_db() {
+        tput setaf 3; echo "Process: create db and user;"; tput setaf 7;
+
+        #Create user
+        sudo -iu postgres psql -c "CREATE ROLE $db_user LOGIN PASSWORD '$db_pass';";
+
+        #Create database
+        sudo -iu postgres psql -c "CREATE DATABASE $db_name OWNER $db_user;";
+    }
+
+    #Setup Redis
+    function setup_redis() {
+        #Activate Redis daemon
+        tput setaf 3; echo "Process: activate redis daemon;"; tput setaf 7;
+        systemctl start redis-server;
+        systemctl enable redis-server;
+
+        #Create Redis config file
+        tput setaf 3; echo "Process: create redis config file;"; tput setaf 7;
+        if [ -f /etc/redis/redis.conf ]; then
+            echo "requirepass $redis_pass" > /etc/redis/misskey.conf
+            [ $method != "systemd" ] && echo "bind $docker_host_ip" >> /etc/redis/misskey.conf
+
+            if ! grep "include /etc/redis/misskey.conf" /etc/redis/redis.conf; then
+                echo "include /etc/redis/misskey.conf" >> /etc/redis/redis.conf;
+            else
+                echo "	skip"
+            fi
+        else
+            echo "Couldn't find /etc/redis/redis.conf."
+            echo "Please modify redis config in another shell like following."
+            echo ""
+            echo "requirepass $redis_pass"
+            [ $method != "systemd" ] && echo "bind $docker_host_ip"
+            echo ""
+            read -r -p "Press Enter key to continue> "
+        fi
+
+        #Restart Redis daemon
+        systemctl restart redis-server;
+    }
+
+    #Setup Nginx
+    function setup_nginx() {
+        if certbot; then
+            #With certbot(https & http)
+            #Create nginx config file for http
+            tput setaf 3; echo "Process: create nginx config file for http;"; tput setaf 7;
+
+            cat > "/etc/nginx/conf.d/$host.conf" <<-EOF
+			# nginx configuration for Misskey
+			# Created by joinmisskey/bash-install v$version
+
+			# For WebSocket
+			map \$http_upgrade \$connection_upgrade {
+				default upgrade;
+				''      close;
+			}
+
+			proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=cache1:16m max_size=1g inactive=720m use_temp_path=off;
+
+			server {
+				listen 80;
+				listen [::]:80;
+				server_name $host;
+
+				# For SSL domain validation
+				root /var/www/html;
+				location /.well-known/acme-challenge/ { allow all; }
+				location /.well-known/pki-validation/ { allow all; }
+
+				# with https
+				location / { return 301 https://\$server_name\$request_uri; }
+			}
+			EOF
+
+            #Get certificate
+            tput setaf 3; echo "Process: get certificate;"; tput setaf 7;
+
+            nginx -t;
+            systemctl restart nginx;
+            if $cloudflare; then
+                certbot certonly -t -n --agree-tos --dns-cloudflare --dns-cloudflare-credentials /etc/cloudflare/cloudflare.ini --dns-cloudflare-propagation-seconds 60 --server https://acme-v02.api.letsencrypt.org/directory $([ ${#hostarr[*]} -eq 2 ] && echo " -d $host -d *.$host" || echo " -d $host") -m "$cf_mail";
+            else
+                mkdir -p /var/www/html;
+                certbot certonly -t -n --agree-tos --webroot --webroot-path /var/www/html $([ ${#hostarr[*]} -eq 2 ] && echo " -d $host" || echo " -d $host") -m "$cf_mail";
+            fi
+
+            #Modify nginx config file for https
+            tput setaf 3; echo "Process: edit nginx config file for https;"; tput setaf 7;
+
+            cat > "/etc/nginx/conf.d/$host.conf" <<-EOF
+			server {
+				listen 443 ssl http2;
+				listen [::]:443 ssl http2;
+				server_name $host;
+
+				ssl_session_timeout 1d;
+				ssl_session_cache shared:ssl_session_cache:10m;
+				ssl_session_tickets off;
+
+				# To use Let's Encrypt certificate
+				ssl_certificate     /etc/letsencrypt/live/$host/fullchain.pem;
+				ssl_certificate_key /etc/letsencrypt/live/$host/privkey.pem;
+
+				# SSL protocol settings
+				ssl_protocols TLSv1.2 TLSv1.3;
+				ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+				ssl_prefer_server_ciphers off;
+				ssl_stapling on;
+				ssl_stapling_verify on;
+
+				# Change to your upload limit
+				client_max_body_size 80m;
+
+				# Proxy to Node
+				location / {
+					proxy_pass http://127.0.0.1:$misskey_port;
+					proxy_set_header Host \$host;
+					proxy_http_version 1.1;
+					proxy_redirect off;
+
+					$($certbot_dns_cloudflare || echo "# If it's behind another reverse proxy or CDN, remove the following.")
+					$($certbot_dns_cloudflare || echo "proxy_set_header X-Real-IP \$remote_addr;")
+					$($certbot_dns_cloudflare || echo "proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;")
+					$($certbot_dns_cloudflare || echo "proxy_set_header X-Forwarded-Proto https;")
+
+				# For WebSocket
+				proxy_set_header Upgrade \$http_upgrade;
+				proxy_set_header Connection \$connection_upgrade;
+
+				# Cache settings
+				proxy_cache cache1;
+				proxy_cache_lock on;
+				proxy_cache_use_stale updating;
+				proxy_force_ranges on;
+				add_header X-Cache \$upstream_cache_status;
+				EOF
+
+        else
+            #Not with certbot(http only)
+            #Create nginx config file for http
+            tput setaf 3; echo "Process: create nginx config file;"; tput setaf 7;
+
+            cat > "/etc/nginx/conf.d/$host.conf" <<-EOF
+			# nginx configuration for Misskey
+			# Created by joinmisskey/bash-install v$version
+
+			# For WebSocket
+			map \$http_upgrade \$connection_upgrade {
+				default upgrade;
+				''      close;
+			}
+
+			proxy_cache_path /tmp/nginx_cache levels=1:2 keys_zone=cache1:16m max_size=1g inactive=720m use_temp_path=off;
+
+			server {
+				listen 80;
+				listen [::]:80;
+				server_name $host;
+
+				# For SSL domain validation
+				root /var/www/html;
+				location /.well-known/acme-challenge/ { allow all; }
+				location /.well-known/pki-validation/ { allow all; }
+
+				# Change to your upload limit
+				client_max_body_size 80m;
+
+				# Proxy to Node
+				location / {
+					proxy_pass http://127.0.0.1:$misskey_port;
+					proxy_set_header Host \$host;
+					proxy_http_version 1.1;
+					proxy_redirect off;
+
+					# If it's behind another reverse proxy or CDN, remove the following.")
+					proxy_set_header X-Real-IP \$remote_addr;")
+					proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;")
+					proxy_set_header X-Forwarded-Proto https;")
+
+				# For WebSocket
+				proxy_set_header Upgrade \$http_upgrade;
+				proxy_set_header Connection \$connection_upgrade;
+
+				# Cache settings
+				proxy_cache cache1;
+				proxy_cache_lock on;
+				proxy_cache_use_stale updating;
+				proxy_force_ranges on;
+				add_header X-Cache \$upstream_cache_status;
+			}
+			EOF
+        fi
+
+        #Check config
+        tput setaf 3; echo "Process: check nginx config;"; tput setaf 7;
+        nginx -t;
+
+        #Activate nginx daemon
+        tput setaf 3; echo "Process: activate nginx daemon;"; tput setaf 7;
+        systemctl restart nginx;
+        systemctl enable nginx;
+
+        #Check response
+        tput setaf 3; echo "Process: check response;"; tput setaf 7;
+        if curl http://localhost | grep -q nginx; then
+            echo "	OK.";
+        else
+            tput setaf 1; echo "	NG.";
+            exit 1;
+        fi
+    }
+
+    #Setup Docker
+    function setup_docker() {
+        #Enable rootless docker
+        tput setaf 3; echo "Process: use rootless docker;" tput setaf 7;
+        systemctl disable --now docker.service docker.socket
+        loginctl enable-linger "$misskey_user"
+        sleep 5
+        sudo -iu "$misskey_user" <<-EOF
+		set -eu;
+		cd ~;
+		export XDG_RUNTIME_DIR=/run/user/$m_uid;
+		export DOCKER_HOST=unix:///run/user/$m_uid/docker.sock;
+		systemctl --user --no-pager
+		dockerd-rootless-setuptool.sh install
+		docker ps;
+		EOF
+
+        #Modify postgresql config
+        if $db_local; then
+            tput setaf 3; echo "Process: modify postgres confs;" tput setaf 7;
+            #hba file
+            pg_hba=$(sudo -iu postgres psql -t -P format=unaligned -c 'show hba_file')
+            #config file
+            pg_conf=$(sudo -iu postgres psql -t -P format=unaligned -c 'show config_file')
+            #docker host ip
+            [[ $(ip addr | grep "$docker_host_ip") =~ /([0-9]+) ]] && subnet=${BASH_REMATCH[1]};
+
+            #Check hba file and add a line if not exists
+            hba_text="host $db_name $db_user $docker_host_ip/$subnet md5"
+            if ! grep "$hba_text" "$pg_hba"; then
+                echo "$hba_text" >> "$pg_hba";
+            fi
+
+            #Check config file and edit a line if not exists
+            pgconf_search="#listen_addresses = 'localhost'"
+            pgconf_text="listen_addresses = '$docker_host_ip'"
+            if grep "$pgconf_search" "$pg_conf"; then
+                sed -i'.mkmoded' -e "s/$pgconf_search/$pgconf_text/g" "$pg_conf";
+            elif grep "$pgconf_text" "$pg_conf"; then
+                echo "	skip"
+            else
+                echo "Please edit postgresql.conf to set [listen_addresses = '$docker_host_ip'] by your hand."
+                read -r -p "Enter the editor command and press Enter key > " -e -i "nano" editorcmd
+                $editorcmd "$pg_conf";
+            fi
+            systemctl restart postgresql;
+        fi
+    }
+
+    #Setup Misskey for systemd
+    function setup_misskey_systemd() {
+        #Setup misskey
+        tput setaf 3; echo "Process: setup misskey;" tput setaf 7;
+        sudo -iu "$misskey_user" <<-EOF;
+		set -eu;
+		cd ~
+		cd "$misskey_directory";
+
+		tput setaf 3; echo "Process: install npm packages;" tput setaf 7;
+		NODE_ENV=production pnpm install --frozen-lockfile;
+
+		tput setaf 3; echo "Process: build misskey;" tput setaf 7;
+		NODE_OPTIONS=--max_old_space_size=3072 NODE_ENV=production pnpm run build;
+
+		tput setaf 3; echo "Process: initialize database;" tput setaf 7;
+		NODE_OPTIONS=--max_old_space_size=3072 pnpm run init;
+
+		tput setaf 3; echo "Check: If Misskey starts correctly;" tput setaf 7;
+		if NODE_ENV=production timeout 40 npm start 2> /dev/null | grep -q "Now listening on port"; then
+			echo "	OK.";
+		else
+			tput setaf 1; echo "	NG.";
+		fi
+		EOF
+
+        #Create misskey daemon
+        tput setaf 3; echo "Process: create misskey daemon;" tput setaf 7;
+        cat > "/etc/systemd/system/$host.service" <<-EOF;
+		[Unit]
+		Description=Misskey daemon
+
+		[Service]
+		Type=simple
+		User=$misskey_user
+		ExecStart=$(command -v npm) start
+		WorkingDirectory=/home/$misskey_user/$misskey_directory
+		Environment="NODE_ENV=production"
+		Environment="LD_PRELOAD=/usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2"
+		TimeoutSec=60
+		StandardOutput=journal
+		StandardError=journal
+		SyslogIdentifier="$host"
+		Restart=always
+
+		[Install]
+		WantedBy=multi-user.target
+		EOF
+
+        #Enable misskey daemon
+        tput setaf 3; echo "Process: enable misskey daemon;" tput setaf 7;
+        systemctl daemon-reload;
+        systemctl enable "$host";
+        systemctl start "$host";
+        systemctl status "$host" --no-pager;
+
+        #Create .misskey.env
+        tput setaf 3; echo "Process: create .misskey.env;" tput setaf 7;
+        su "$misskey_user" <<-EOF
+		set -eu;
+		cd ~;
+
+		cat > ".misskey.env" <<-_EOF
+		host="$host"
+		misskey_port=$misskey_port
+		misskey_directory="$misskey_directory"
+		misskey_localhost="$misskey_localhost"
+		version="$version"
+		_EOF
+		EOF
+
+        tput setaf 2;
+        tput bold;
+        echo "ALL MISSKEY INSTALLATION PROCESSES ARE COMPLETE!";
+        echo "Jump to https://$host/ and continue setting up your instance.";
+        tput setaf 7;
+        echo "This script version is v$version.";
+        echo "Please follow @joinmisskey@misskey.io to address bugs and updates.";
+    }
+
+    #Setup Misskey for docker(docker_hub and docker_build)
+    function setup_misskey_docker() {
+        if [ $method == "docker_build" ]; then
+            tput setaf 3; echo "Process: build docker image;"; tput setaf 7;
+            sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_repository "/home/$misskey_user/$misskey_directory";
+        fi
+
+        #Create .misskey-docker.env
+        tput setaf 3; echo "Process: create misskey-docker.env;"; tput setaf 7;
+        su "$misskey_user" <<-MKEOF
+		set -eu;
+		cd ~;
+
+		cat > ".misskey-docker.env" <<-_EOF
+		method="$method"
+		host="$host"
+		misskey_port=$misskey_port
+		misskey_directory="$misskey_directory"
+		misskey_localhost="$misskey_localhost"
+		docker_host_ip=$docker_host_ip
+		docker_repository="$docker_repository"
+		docker_container="$docker_container"
+		version="$version"
+		_EOF
+		MKEOF
+
+        tput setaf 2;
+        tput bold;
+        echo "ALL MISSKEY INSTALLATION PROCESSES ARE COMPLETE!";
+        echo "Now all we need to do is run docker run."
+        tput setaf 7;
+        echo "Watch the screen."
+        echo "When it shows \"Now listening on port $misskey_port on https://$host\","
+        echo "press Ctrl+C to exit logs and jump to https://$host/ and continue setting up your instance.";
+        echo ""
+        echo "This script version is v$version.";
+        echo "Please follow @joinmisskey@misskey.io to address bugs and updates.";
+        echo ""
+        read -r -p "Press Enter key to execute docker run> ";
+        echo ""
+
+        #Run docker container
+        tput setaf 3; echo "Process: docker run;" tput setaf 7;
+        docker_container=$(sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v "/home/$misskey_user/$misskey_directory/files":/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
+        echo "$docker_container";
+
+        #Show docker container logs
+        sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker logs -f $docker_container;
+    }
+
+    install_packages;
+    add_user;
+    delete_misskey_directory;
+    if [ $method != "docker_hub" ]; then git_clone; fi
+    create_config;
+    if $nginx_local; then open_ports; prepare_nginx; fi
+    if [ $method == "systemd" ]; then prepare_nodejs; else prepare_docker; fi
+    if $redis_local; then prepare_redis; fi
+    if $db_local; then prepare_postgresql; fi
+    create_db;
+    if $redis_local; then setup_redis; fi
+    if $nginx_local; then setup_nginx; fi
+    if [ $method != "systemd" ]; then setup_docker; fi
+    if [ $method == "systemd" ]; then setup_misskey_systemd; else setup_misskey_docker; fi
 }
 
 #Main
 function main() {
-    #First, check environment
+    #Check environment
     envtest;
 
-    #Second, select options
+    #Select options
     #If a yaml file is specified with the -c option, load the file. Otherwise, run options.
     if [ "$1" = "-c" ]; then
         if [ -f "$2" ]; then
+            echo "Compose file is specified. Load options from $2.";
             load_options;
         else
             tput setaf 1; echo "Error: $2 is not found or is not a file.";
             exit 1;
         fi
     else
+        echo "Compose file is not specified. Select options interactively.";
         options;
     fi
 
-    #Third, confirm options
+    #Confirm options
     confirm_options;
 
-    #Fourth, save options
+    #Save options
     save_options;
 
-    #Fifth, install Misskey
+    #Install Misskey
     install;
 }
 

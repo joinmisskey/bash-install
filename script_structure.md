@@ -51,16 +51,15 @@ script structure
     12. 設定内容の確認 #compose.yamlがあるか引数でオプション指定されていた場合、確認を出すかどうか確認する必要がある #installed = trueの場合、失敗する&データが失われる可能性がある旨の警告を出す
     13. 設定内容の保存 #compose.yamlに保存する(上書き)
 4. b/インストール - function
-    1. compose.yamlでinstalled = trueにする #再実行された場合に警告するため
-    #methodによらず共通設定
+    1. /root/.misskey_installedを作成
     2. ユーザー作成
     3. apt update && apt install(methodによって入れるパッケージが一部異なる)
-    4. すでにmisskeyディレクトリがある場合は削除
+    4. すでにmisskeyディレクトリがある場合は削除、systemdかdocker_buildの場合はgit clone
     5. misskey用のconfig.yamlを作成
     6. nginx入れる場合、ポートを開けて、gpgとリポジトリを追加
-    7. リポジトリ追加
+    7. apt用のリポジトリ追加
         - systemdの場合
-            1. nodejsのセットアップをする(インストールの前段階)
+            1. nodejsのインストール準備のスクリプトを動かす
         - docker_hub,docker_buildの場合
             1. dockerのgpgとリポジトリを追加
     8. redis入れる場合、gpgとリポジトリを追加
