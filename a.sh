@@ -1365,7 +1365,7 @@ function main() {
 
     #Select options
     #If a yaml file is specified with the -c option, load the file. Otherwise, run options.
-    if [ -z "$1" ]; then
+    if [ $# = 0 ]; then
         echo "Compose file is not specified. Select options interactively.";
         options;
     else
