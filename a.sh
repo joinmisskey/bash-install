@@ -1368,19 +1368,19 @@ function main() {
     if [ -z "$1" ]; then
         echo "Compose file is not specified. Select options interactively.";
         options;
-    fi
-
-    if [ "$1" = "-c" ]; then
-        if [ -f "$2" ]; then
-            echo "Compose file is specified. Load options from $2.";
-            load_options;
-        else
-            tput setaf 1; echo "Error: $2 is not found or is not a file.";
-            exit 1;
-        fi
     else
-        tput setaf 1; echo "Invalid option.";
-        options;
+        if [ "$1" = "-c" ]; then
+            if [ -f "$2" ]; then
+                echo "Compose file is specified. Load options from $2.";
+                load_options;
+            else
+                tput setaf 1; echo "Error: $2 is not found or is not a file.";
+                exit 1;
+            fi
+        else
+            tput setaf 1; echo "Invalid option.";
+            options;
+        fi
     fi
 
     #Confirm options
