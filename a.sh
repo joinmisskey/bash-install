@@ -480,8 +480,7 @@ function options() {
                 esac
             fi
             #---end-sub-reg---
-
-    fi
+    esac
     #---end-reg---
 
     echo "";
