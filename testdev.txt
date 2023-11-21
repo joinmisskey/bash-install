@@ -1,44 +1,45 @@
-	#Install method
-	method=$method
+#Install method
+method=docker_hub
 
-	#Misskey setting
-	docker_repository=$docker_repository
-	docker_host_ip=$docker_host_ip
-	git_repository=$git_repository
-	git_branch=$git_branch
-	misskey_directory=$misskey_directory
-	misskey_user=$misskey_user
-	host=$host
-	misskey_port=$misskey_port
+#Misskey setting
+docker_repository=misskey/misskey:latest
+docker_host_ip=127.0.0.1
+git_repository=
+git_branch=
+misskey_directory=/home/misskey/misskey
+misskey_localhost=docker_host
+misskey_user=misskey
+host=127.0.0.1
+misskey_port=3000
 
-	#Nginx setting
-	nginx_local=$nginx_local
-	ufw=$ufw
-	iptables=$iptables
-	certbot=$certbot
-	certbot_dns_cloudflare=$certbot_dns_cloudflare
-	certbot_http=$certbot_http
-	certbot_mailaddress=$certbot_mailaddress
-	certbot_cloudflare_mail=$certbot_cloudflare_mail
-	certbot_cloudflare_key=$certbot_cloudflare_key
+#Nginx setting
+nginx_local=true
+ufw=false
+iptables=false
+certbot=false
+certbot_dns_cloudflare=
+certbot_http=
+certbot_mailaddress=
+certbot_cloudflare_mail=
+certbot_cloudflare_key=
 
-	#Database (PostgreSQL) setting
-	db_local=$db_local
-	db_host=$db_host
-	db_port=$db_port
-	db_user=$db_user
-	db_pass=$db_pass
-	db_name=$db_name
+#Database (PostgreSQL) setting
+db_local=true
+db_host=docker_host
+db_port=5432
+db_user=misskey
+db_pass=misskey
+db_name=misskey
 
-	#Redis setting
-	redis_local=$redis_local
-	redis_host=$redis_host
-	redis_port=$redis_port
-	redis_pass=$redis_pass
+#Redis setting
+redis_local=true
+redis_host=docker_host
+redis_port=6379
+redis_pass=misskey
 
-	#Swap setting
-	swap=$swap
-	swap_size=$swap_size
+#Swap setting
+swap=true
+swap_size=2048
 
-	#Skip confirm
-	#skip_confirm=false
+#Skip confirm
+skip_confirm=true
