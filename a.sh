@@ -121,6 +121,10 @@ function load_options() {
             exit 1;
         fi
     fi
+    if [ -z "$misskey_localhost" ]; then
+        tput setaf 1; echo "Error: misskey_localhost is not set."; tput setaf 7;
+        exit 1;
+    fi
     if [ -z "$misskey_user" ]; then
         tput setaf 1; echo "Error: misskey_user is not set."; tput setaf 7;
         exit 1;
@@ -249,10 +253,11 @@ function save_options() {
 
 	#Misskey setting
 	docker_repository=$docker_repository
-    docker_host_ip=$docker_host_ip
+	docker_host_ip=$docker_host_ip
 	git_repository=$git_repository
 	git_branch=$git_branch
 	misskey_directory=$misskey_directory
+	misskey_localhost=$misskey_localhost
 	misskey_user=$misskey_user
 	host=$host
 	misskey_port=$misskey_port
@@ -632,6 +637,7 @@ function confirm_options() {
         echo "Git branch or tag: $git_branch";
         echo "Misskey directory: $misskey_directory";
     fi
+    echo "Misskey localhost: $misskey_localhost";
     echo "Misskey user: $misskey_user";
     echo "Host: $host";
     echo "Misskey port: $misskey_port";
