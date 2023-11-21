@@ -15,5 +15,5 @@ jobs:
 
     - name: run script
       run: |
-        chmod +x ./a.sh
-        ./a.sh -c ./testdev.txt
+        sudo chmod 555 ./a.sh
+        sudo ./a.sh -c ./testdev.txt
