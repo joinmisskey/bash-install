@@ -1,0 +1,16 @@
+name: deploy test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@v2
+
+    - name: run script
+      run: |
+        chmod +x ./a.sh
+        ./a.sh -c ./testdev.txt
