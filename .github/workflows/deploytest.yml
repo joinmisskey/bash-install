@@ -10,6 +10,9 @@ jobs:
     - name: checkout repo
       uses: actions/checkout@v2
 
+    - name: config
+      run: echo "TERM=xterm" >> $GITHUB_ENV
+
     - name: run script
       run: |
         chmod +x ./a.sh
