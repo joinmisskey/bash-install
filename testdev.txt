@@ -3,7 +3,7 @@
 
 	#Misskey setting
 	docker_repository=$docker_repository
-    docker_host_ip=$docker_host_ip
+	docker_host_ip=$docker_host_ip
 	git_repository=$git_repository
 	git_branch=$git_branch
 	misskey_directory=$misskey_directory
