@@ -1,0 +1,44 @@
+	#Install method
+	method=$method
+
+	#Misskey setting
+	docker_repository=$docker_repository
+    docker_host_ip=$docker_host_ip
+	git_repository=$git_repository
+	git_branch=$git_branch
+	misskey_directory=$misskey_directory
+	misskey_user=$misskey_user
+	host=$host
+	misskey_port=$misskey_port
+
+	#Nginx setting
+	nginx_local=$nginx_local
+	ufw=$ufw
+	iptables=$iptables
+	certbot=$certbot
+	certbot_dns_cloudflare=$certbot_dns_cloudflare
+	certbot_http=$certbot_http
+	certbot_mailaddress=$certbot_mailaddress
+	certbot_cloudflare_mail=$certbot_cloudflare_mail
+	certbot_cloudflare_key=$certbot_cloudflare_key
+
+	#Database (PostgreSQL) setting
+	db_local=$db_local
+	db_host=$db_host
+	db_port=$db_port
+	db_user=$db_user
+	db_pass=$db_pass
+	db_name=$db_name
+
+	#Redis setting
+	redis_local=$redis_local
+	redis_host=$redis_host
+	redis_port=$redis_port
+	redis_pass=$redis_pass
+
+	#Swap setting
+	swap=$swap
+	swap_size=$swap_size
+
+	#Skip confirm
+	#skip_confirm=false
