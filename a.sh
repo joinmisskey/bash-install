@@ -1,5 +1,8 @@
 #!/bin/bash -eu
-# Copyright 2023 aqz/tamaina, joinmisskey
+
+#
+# Copyright 2023 aqz/tamaina, joinmisskey (upstream)
+# Coryright 2023 Srgr0 (fork)
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files (the "Software"),
@@ -31,6 +34,7 @@ echo "";
 
 #Check environment(linux, root, arch)
 function envtest() {
+    echo "";
     tput setaf 3; echo "Checking environment..."; tput setaf 7;
 
     #Check if the script is running on Linux
@@ -80,6 +84,7 @@ function envtest() {
 
 #Load options
 function load_options() {
+    echo "";
     tput setaf 3; echo "Loading options from $2..."; tput setaf 7;
 
     #Load options
@@ -96,6 +101,10 @@ function load_options() {
     if [ "$method" = "docker_hub" ]; then
         if [ -z "$docker_repository" ]; then
             tput setaf 1; echo "Error: docker_repository is not set."; tput setaf 7;
+            exit 1;
+        fi
+        if [ -z "$docker_host_ip" ]; then
+            tput setaf 1; echo "Error: docker_host_ip is not set."; tput setaf 7;
             exit 1;
         fi
     else
@@ -229,6 +238,7 @@ function load_options() {
 
 #Save options
 function save_options() {
+    echo "";
     tput setaf 3; echo "Saving options to ./misskey_compose.txt..."; tput setaf 7;
 
     #Temporarily allow undefined variables
@@ -239,6 +249,7 @@ function save_options() {
 
 	#Misskey setting
 	docker_repository=$docker_repository
+    docker_host_ip=$docker_host_ip
 	git_repository=$git_repository
 	git_branch=$git_branch
 	misskey_directory=$misskey_directory
@@ -284,6 +295,7 @@ function save_options() {
 
 #Select options
 function options() {
+    echo "";
     tput setaf 3; echo "Select options."; tput setaf 7;
 
     #---reg: Install method---
@@ -298,18 +310,28 @@ function options() {
             #Docker build
             echo "Build a Docker image.";
             method="docker_build";
+            misskey_localhost="docker_host";
             ;;
         [sS])
             #Systemd
             echo "Use Systemd.";
             method="systemd";
+            misskey_localhost=localhost;
             ;;
         *)
             #Docker Hub
             echo "Use Docker Hub.";
             method="docker_hub";
+            misskey_localhost="docker_host";
             ;;
     esac
+
+    if [ $method = "docker_hub" ] || [ $method = "docker_build" ]; then
+        echo "Determine the local IP of this computer as docker host.";
+        echo "The IPs that are supposed to be available are as follows (the result of hostname -I)";
+        echo "	$(hostname -I)"
+        read -r -p "> " -e -i "$(hostname -I | cut -f1 -d' ')" docker_host_ip;
+    fi
     #---end-reg---
 
     echo "";
@@ -317,28 +339,30 @@ function options() {
     #---reg: Misskey setting---
     tput setaf 3; echo "Misskey setting"; tput setaf 7;
 
+    #Username
+    echo "Enter the name of user with which you want to execute Misskey:";
+    read -r -p "> " -e -i "misskey" misskey_user;
+
+    echo "";
+
     #Git/Docker Repository
     if [ $method = "docker_hub" ]; then
         echo "Enter repository:tag of Docker Hub image:";
         read -r -p "> " -e -i "misskey/misskey:latest" docker_repository;
-        misskey_directory=misskey;
+        misskey_directory=/home/$misskey_user/misskey;
     else
         if [ $method = "docker_build" ]; then
             docker_repository="local/misskey:latest";
+            misskey_directory=/home/$misskey_user/misskey;
         fi
         echo "Enter repository url where you want to install:";
         read -r -p "> " -e -i "https://github.com/misskey-dev/misskey.git" git_repository;
         echo "Enther the branch or tag";
         read -r -p "> " -e -i "master" git_branch;
         echo "Enter the name of a new directory to clone:";
-        read -r -p "> " -e -i "misskey" misskey_directory;
+        read -r -p "> " -e -i "misskey" misskey_directory_path;
+        misskey_directory=/home/$misskey_user/$misskey_directory_path;
     fi
-
-    echo "";
-
-    #Username
-    echo "Enter the name of user with which you want to execute Misskey:";
-    read -r -p "> " -e -i "misskey" misskey_user;
 
     echo "";
 
@@ -592,6 +616,7 @@ function options() {
 
 #Confirm options
 function confirm_options() {
+    echo "";
     tput setaf 3; echo "Confirm options."; tput setaf 7;
 
     #---reg: Install method---
@@ -601,6 +626,7 @@ function confirm_options() {
     #---reg: Misskey setting---
     if [ $method = "docker_hub" ]; then
         echo "Docker Repository: $docker_repository";
+        echo "Docker host IP: $docker_host_ip";
     else
         echo "Git Repository: $git_repository";
         echo "Git branch or tag: $git_branch";
@@ -676,6 +702,7 @@ function confirm_options() {
 
 #Install Misskey
 function install() {
+    echo "";
     tput setaf 3; echo "Install Misskey."; tput setaf 7;
 
     #Check if Misskey is already installed
@@ -688,6 +715,7 @@ function install() {
 
     #Install Packeges
     function install_packages() {
+        echo "";
         tput setaf 3; echo "Process: apt install #1;"; tput setaf 7;
 
         apt -qq update -y;
@@ -696,6 +724,7 @@ function install() {
 
     #Create a user to run Misskey
     function add_user() {
+        echo "";
         tput setaf 3; echo "Process: add misskey user ($misskey_user);"; tput setaf 7;
 
         if ! id -u "$misskey_user" > /dev/null 2>&1; then
@@ -705,19 +734,22 @@ function install() {
         fi
         echo "misskey_user=\"$misskey_user\"" > /root/.misskey.env
         echo "version=\"$version\"" >> /root/.misskey.env
+        m_uid=$(id -u "$misskey_user")
     }
 
     #Delete Misskey directory if exists
     function delete_misskey_directory() {
+        echo "";
         tput setaf 3; echo "Process: delete misskey directory ($misskey_directory);"; tput setaf 7;
 
-        if [ -e "/home/$misskey_user/$misskey_directory" ]; then
-            rm -rf "/home/$misskey_user/$misskey_directory";
+        if [ -e "$misskey_directory" ]; then
+            rm -rf "$misskey_directory";
         fi
     }
 
     #Clone git repository
     function git_clone() {
+        echo "";
         tput setaf 3; echo "Process: clone git repository;"; tput setaf 7;
 
         sudo -iu "$misskey_user" git clone -b "$branch" --depth 1 --recursive "$repository" "$misskey_directory";
@@ -725,7 +757,10 @@ function install() {
 
     #Create misskey config file
     function create_config() {
+        echo "";
         tput setaf 3; echo "Process: create config;"; tput setaf 7;
+
+        sudo -iu "$misskey_user" mkdir -p "$misskey_directory/.config";
 
         sudo -iu "$misskey_user" cat > "$misskey_directory/.config/default.yml" <<-EOF
 		url: https://$host
@@ -767,6 +802,7 @@ function install() {
 
     #Open ports
     function open_ports() {
+        echo "";
         tput setaf 3; echo "Process: open ports;"; tput setaf 7;
 
         #ufw
@@ -832,6 +868,7 @@ function install() {
 
     #Install Nginx
     function prepare_nginx() {
+        echo "";
         tput setaf 3; echo "Process: prepare nginx;"; tput setaf 7;
 
         #Add nginx gpg key
@@ -862,6 +899,7 @@ function install() {
 
     #Install Nodejs
     function prepare_nodejs() {
+        echo "";
         tput setaf 3; echo "Process: prepare nodejs;"; tput setaf 7;
 
         #Add nodejs gpg key
@@ -889,6 +927,7 @@ function install() {
 
     #Install Docker
     function prepare_docker() {
+        echo "";
         tput setaf 3; echo "Process: prepare docker;"; tput setaf 7;
 
         #Add docker gpg key
@@ -912,6 +951,7 @@ function install() {
 
     #Install Redis
     function prepare_redis() {
+        echo "";
         tput setaf 3; echo "Process: prepare redis;"; tput setaf 7;
 
         #Add redis gpg key
@@ -933,6 +973,7 @@ function install() {
 
     #Install PostgreSQL
     function prepare_postgresql() {
+        echo "";
         tput setaf 3; echo "Process: prepare postgresql;"; tput setaf 7;
 
         #Install postgresql
@@ -950,6 +991,7 @@ function install() {
 
     #Create DB and user
     function create_db() {
+        echo "";
         tput setaf 3; echo "Process: create db and user;"; tput setaf 7;
 
         #Create user
@@ -961,6 +1003,8 @@ function install() {
 
     #Setup Redis
     function setup_redis() {
+        echo "";
+
         #Activate Redis daemon
         tput setaf 3; echo "Process: activate redis daemon;"; tput setaf 7;
         systemctl start redis-server;
@@ -993,7 +1037,9 @@ function install() {
 
     #Setup Nginx
     function setup_nginx() {
-        if certbot; then
+        echo "";
+
+        if $certbot; then
             #With certbot(https & http)
             #Create nginx config file for http
             tput setaf 3; echo "Process: create nginx config file for http;"; tput setaf 7;
@@ -1125,21 +1171,22 @@ function install() {
 					proxy_http_version 1.1;
 					proxy_redirect off;
 
-					# If it's behind another reverse proxy or CDN, remove the following.")
-					proxy_set_header X-Real-IP \$remote_addr;")
-					proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;")
-					proxy_set_header X-Forwarded-Proto https;")
+					# If it's behind another reverse proxy or CDN, remove the following.
+					proxy_set_header X-Real-IP \$remote_addr;
+					proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+					proxy_set_header X-Forwarded-Proto https;
 
-				# For WebSocket
-				proxy_set_header Upgrade \$http_upgrade;
-				proxy_set_header Connection \$connection_upgrade;
+					# For WebSocket
+					proxy_set_header Upgrade \$http_upgrade;
+					proxy_set_header Connection \$connection_upgrade;
 
-				# Cache settings
-				proxy_cache cache1;
-				proxy_cache_lock on;
-				proxy_cache_use_stale updating;
-				proxy_force_ranges on;
-				add_header X-Cache \$upstream_cache_status;
+					# Cache settings
+					proxy_cache cache1;
+					proxy_cache_lock on;
+					proxy_cache_use_stale updating;
+					proxy_force_ranges on;
+					add_header X-Cache \$upstream_cache_status;
+                }
 			}
 			EOF
         fi
@@ -1165,8 +1212,10 @@ function install() {
 
     #Setup Docker
     function setup_docker() {
+        echo "";
+
         #Enable rootless docker
-        tput setaf 3; echo "Process: use rootless docker;" tput setaf 7;
+        tput setaf 3; echo "Process: use rootless docker;"; tput setaf 7;
         systemctl disable --now docker.service docker.socket
         loginctl enable-linger "$misskey_user"
         sleep 5
@@ -1214,6 +1263,8 @@ function install() {
 
     #Setup Misskey for systemd
     function setup_misskey_systemd() {
+        echo "";
+
         #Setup misskey
         tput setaf 3; echo "Process: setup misskey;" tput setaf 7;
         sudo -iu "$misskey_user" <<-EOF;
@@ -1248,7 +1299,7 @@ function install() {
 		Type=simple
 		User=$misskey_user
 		ExecStart=$(command -v npm) start
-		WorkingDirectory=/home/$misskey_user/$misskey_directory
+		WorkingDirectory=$misskey_directory
 		Environment="NODE_ENV=production"
 		Environment="LD_PRELOAD=/usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2"
 		TimeoutSec=60
@@ -1289,15 +1340,23 @@ function install() {
         echo "Jump to https://$host/ and continue setting up your instance.";
         tput setaf 7;
         echo "This script version is v$version.";
-        echo "Please follow @joinmisskey@misskey.io to address bugs and updates.";
+        echo "Please check https://github.com/srgr0/bash-install to address bugs and updates.";
     }
 
     #Setup Misskey for docker(docker_hub and docker_build)
     function setup_misskey_docker() {
+        echo "";
+
         if [ $method == "docker_build" ]; then
             tput setaf 3; echo "Process: build docker image;"; tput setaf 7;
-            sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_repository "/home/$misskey_user/$misskey_directory";
+            sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker build -t $docker_repository "$misskey_directory";
         fi
+
+        #Run docker container
+        tput setaf 3; echo "Process: docker run;" tput setaf 7;
+        sudo -iu "$misskey_user" mkdir -p "$misskey_directory/files";
+        docker_container=$(sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v "$misskey_directory/files":/misskey/files -v "$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
+        echo "$docker_container";
 
         #Create .misskey-docker.env
         tput setaf 3; echo "Process: create misskey-docker.env;"; tput setaf 7;
@@ -1328,15 +1387,10 @@ function install() {
         echo "press Ctrl+C to exit logs and jump to https://$host/ and continue setting up your instance.";
         echo ""
         echo "This script version is v$version.";
-        echo "Please follow @joinmisskey@misskey.io to address bugs and updates.";
+        echo "Please check https://github.com/srgr0/bash-install to address bugs and updates.";
         echo ""
         read -r -p "Press Enter key to execute docker run> ";
         echo ""
-
-        #Run docker container
-        tput setaf 3; echo "Process: docker run;" tput setaf 7;
-        docker_container=$(sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v "/home/$misskey_user/$misskey_directory/files":/misskey/files -v "/home/$misskey_user/$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
-        echo "$docker_container";
 
         #Show docker container logs
         sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker logs -f $docker_container;
