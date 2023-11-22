@@ -95,6 +95,7 @@ function load_options() {
         if [ "$docker_host_ip" = "auto" ] || [ "$docker_host_ip" = "Auto" ]; then
             echo "Setting docker host IP...";
             docker_host_ip="$(hostname -I | cut -f1 -d' ')";
+            echo "Docker host IP: $docker_host_ip";
         fi
     fi
 
