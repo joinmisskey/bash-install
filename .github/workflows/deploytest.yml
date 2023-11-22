@@ -16,4 +16,4 @@ jobs:
     - name: Run install script
       run: |
         sudo chmod 555 ./a.sh
-        sudo ./a.sh -c ./testdev.txt
+        sudo bash +x ./a.sh -c ./testdev.txt
