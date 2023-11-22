@@ -1009,6 +1009,9 @@ function install() {
         echo "";
         tput setaf 3; echo "Process: create db and user;"; tput setaf 7;
 
+        #Start postgresql
+        service postgresql start
+
         #Create user
         sudo -iu postgres psql -c "CREATE ROLE $db_user LOGIN PASSWORD '$db_pass';";
 
