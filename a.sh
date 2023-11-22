@@ -90,6 +90,14 @@ function load_options() {
     #Load options
     source "${args[1]}";
 
+    #Set docker host ip address
+    if [ "$method" = "docker_hub" ] || [ "$method" = "docker_build" ]; then
+        if [ "$docker_host_ip" = "auto" ] || [ "$docker_host_ip" = "Auto" ]; then
+            echo "Setting docker host IP...";
+            docker_host_ip="$(hostname -I | cut -f1 -d' ')";
+        fi
+    fi
+
     #Check if the options are valid
     #Install method
     if [ "$method" != "docker_hub" ] && [ "$method" != "docker_build" ] && [ "$method" != "systemd" ]; then
@@ -1359,7 +1367,7 @@ function install() {
         fi
 
         #Run docker container
-        tput setaf 3; echo "Process: docker run;" tput setaf 7;
+        tput setaf 3; echo "Process: docker run;"; tput setaf 7;
         sudo -iu "$misskey_user" mkdir -p "$misskey_directory/files";
         docker_container=$(sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker run -d -p $misskey_port:$misskey_port --add-host=$misskey_localhost:$docker_host_ip -v "$misskey_directory/files":/misskey/files -v "$misskey_directory/.config/default.yml":/misskey/.config/default.yml:ro --restart unless-stopped -t "$docker_repository");
         echo "$docker_container";
