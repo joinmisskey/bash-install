@@ -85,10 +85,10 @@ function envtest() {
 #Load options
 function load_options() {
     echo "";
-    tput setaf 3; echo "Loading options from $2..."; tput setaf 7;
+    tput setaf 3; echo "Loading options from "${args[1]}"..."; tput setaf 7;
 
     #Load options
-    source "$2";
+    source "${args[1]}";
 
     #Check if the options are valid
     #Install method
@@ -1420,21 +1420,23 @@ function install() {
 
 #Main
 function main() {
+    args=("$@")
+
     #Check environment
     envtest;
 
     #Select options
     #If a yaml file is specified with the -c option, load the file. Otherwise, run options.
-    if [ $# = 0 ]; then
+    if [ ${#args[@]} -eq 0 ]; then
         echo "Compose file is not specified. Select options interactively.";
         options;
     else
-        if [ "$1" = "-c" ]; then
-            if [ -f "$2" ]; then
-                echo "Compose file is specified. Load options from $2.";
+        if [ "${args[0]}" = "-c" ]; then
+            if [ -f "${args[1]}" ]; then
+                echo "Compose file is specified. Load options from "${args[1]}".";
                 load_options;
             else
-                tput setaf 1; echo "Error: $2 is not found or is not a file.";
+                tput setaf 1; echo "Error: "${args[1]}" is not found or is not a file.";
                 exit 1;
             fi
         else
@@ -1453,4 +1455,4 @@ function main() {
     install;
 }
 
-main;
+main "$@";

@@ -7,13 +7,13 @@ jobs:
   run-script:
     runs-on: ubuntu-latest
     steps:
-    - name: checkout repo
+    - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: config
+    - name: Set environment variable (for tput command)
       run: echo "TERM=xterm" >> $GITHUB_ENV
 
-    - name: run script
+    - name: Run install script
       run: |
         sudo chmod 555 ./a.sh
         sudo ./a.sh -c ./testdev.txt
