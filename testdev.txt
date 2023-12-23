@@ -4,8 +4,8 @@ method=docker_hub
 #Misskey setting
 docker_repository=misskey/misskey:latest
 docker_host_ip=auto
-git_repository=
-git_branch=
+git_repository=https://github.com/misskey-dev/misskey
+git_branch=develop
 misskey_directory=/home/misskey/misskey
 misskey_localhost=docker_host
 misskey_user=misskey
@@ -17,11 +17,11 @@ nginx_local=true
 ufw=false
 iptables=false
 certbot=false
-certbot_dns_cloudflare=
-certbot_http=
-certbot_mailaddress=
-certbot_cloudflare_mail=
-certbot_cloudflare_key=
+certbot_dns_cloudflare=false
+certbot_http=false
+certbot_mailaddress=false
+certbot_cloudflare_mail=false
+certbot_cloudflare_key=false
 
 #Database (PostgreSQL) setting
 db_local=true

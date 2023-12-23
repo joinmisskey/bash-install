@@ -1,8 +1,8 @@
 script structure
 
 1. スクリプト概要の表示
-2. b/env判定(root,linux,arch,ram) - function
-3. f/オプション選択 - function
+2. env判定(root,linux,arch,ram)
+3. オプション選択
     0. compose.yamlが指定されていればそれを読み込む #値が不正な場合、エラーを出す(値を直すか、compose.yamlを削除するように言う)
     1. method選択(dockerhub,docker_build,systemd)
     2. source入力
@@ -50,7 +50,7 @@ script structure
                     1. メモリ不足でインストールが失敗する可能性がある旨を表示
     12. 設定内容の確認 #compose.yamlがあるか引数でオプション指定されていた場合、確認を出すかどうか確認する必要がある #installed = trueの場合、失敗する&データが失われる可能性がある旨の警告を出す
     13. 設定内容の保存 #compose.yamlに保存する(上書き)
-4. b/インストール - function
+4. インストール
     1. /root/.misskey_installedを作成
     2. ユーザー作成
     3. apt update && apt install(methodによって入れるパッケージが一部異なる)
