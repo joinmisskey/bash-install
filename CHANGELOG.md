@@ -1,6 +1,21 @@
 # v3
 For Misskey v13 production and later RC (since 13.0.0-rc.10)
 
+The English version is available at https://github.com/joinmisskey/bash-install/releases .
+
+## v3.2.1
+Node.jsのダウンロード元(nodesource提供)が変更になりました。  
+次のコマンドを実行し、Node.jsをアップデートしてください。
+
+```
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/nodesource.gpg
+NODE_MAJOR=20 echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+
+sudo apt install -y nodejs
+```
+
+※Misskey v2023.12.0以降ではNode.jsの要求バージョンが上がったため必須となります。
+
 ## v3.2.0
 - systemd環境ではjemallocを使用するようにしました。
   `sudo apt install libjemalloc-dev`を実行し、`/etc/systemd/system/example.com.service`の`Environment="NODE_ENV=production"`の下に`Environment="LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2"`を書き足してください。arm64環境では`x86_64`を`aarch64`にしてください.
@@ -15,7 +30,9 @@ Node.js v20をインストールするように変更しました。
 まず、次のコマンドでv20をインストールします。
 
 ```
-curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/nodesource.gpg
+NODE_MAJOR=20 echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
+
 sudo apt install -y nodejs
 ```
 

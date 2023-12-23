@@ -18,7 +18,8 @@
 # DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-version="3.2.0";
+version="3.2.1";
+NODE_MAJOR="20";
 
 tput setaf 4;
 echo "";
@@ -387,6 +388,11 @@ else
 fi
 
 tput setaf 3;
+echo "Process: mkdir -p /usr/share/keyrings;";
+tput setaf 7;
+sudo mkdir -p /usr/share/keyrings;
+
+tput setaf 3;
 echo "Process: add misskey user ($misskey_user);";
 tput setaf 7;
 if cut -d: -f1 /etc/passwd | grep -q -x "$misskey_user"; then
@@ -544,7 +550,9 @@ if [ $method == "systemd" ]; then
 	tput setaf 3;
 	echo "Process: prepare node.js;"
 	tput setaf 7;
-	curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -;
+	curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/nodesource.gpg;
+	echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list;
+
 else
 	tput setaf 3;
 	echo "Process: prepare docker;"
