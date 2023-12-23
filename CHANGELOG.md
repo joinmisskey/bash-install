@@ -4,8 +4,9 @@ For Misskey v13 production and later RC (since 13.0.0-rc.10)
 The English version is available at https://github.com/joinmisskey/bash-install/releases .
 
 ## v3.2.1
-Node.jsのダウンロード元(nodesource提供)が変更になりました。  
-次のコマンドを実行し、Node.jsをアップデートしてください。
+Node.jsのダウンロード元(nodesource提供)が変更になりました。
+
+systemd方式を選択された方は、次のコマンドを実行し、Node.jsをアップデートしてください。
 
 ```
 sudo rm /usr/share/keyrings/nodesource.gpg;
@@ -26,7 +27,7 @@ sudo apt install -y nodejs;
 ## v3.1.0
 Node.js v20をインストールするように変更しました。
 
-アップデート前にNode.jsのアップデートを行う必要があります。
+systemd方式を選択された方は、アップデート前にNode.jsのアップデートを行う必要があります。
 
 まず、次のコマンドでv20をインストールします。
 
