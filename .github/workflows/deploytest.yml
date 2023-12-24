@@ -13,6 +13,10 @@ jobs:
     - name: Set environment variable (for tput command)
       run: echo "TERM=xterm" >> $GITHUB_ENV
 
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20.10
+
     - name: Run install script
       run: |
         sudo chmod 555 ./a.sh
