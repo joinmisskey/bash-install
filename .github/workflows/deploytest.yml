@@ -1,7 +1,7 @@
 name: deploy test
 
 on:
-  workflow_dispatch:
+  push:
 
 jobs:
   run-script:
