@@ -1,8 +1,7 @@
 #!/bin/bash -eu
 
 #
-# Copyright 2023 aqz/tamaina, joinmisskey (upstream)
-# Coryright 2023 Srgr0 (fork)
+# Copyright 2023 aqz/tamaina, Srgr0, joinmisskey
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files (the "Software"),
@@ -23,7 +22,8 @@
 #
 
 #Version of this script
-version="s0.1.0";
+version="4.0.0-beta.1";
+NODE_MAJOR="20";
 
 #About this script
 tput setaf 4;
@@ -767,7 +767,7 @@ function install() {
         echo "";
         tput setaf 3; echo "Process: clone git repository;"; tput setaf 7;
 
-        sudo -iu "$misskey_user" git clone -b "$branch" --depth 1 --recursive "$repository" "$misskey_directory";
+        sudo -iu "$misskey_user" git clone -b "$git_branch" --depth 1 --recursive "$git_repository" "$misskey_directory";
     }
 
     #Create misskey config file
@@ -881,6 +881,73 @@ function install() {
         fi
     }
 
+    #Setup Cloudflare Tunnel
+    function setup_cloudflaretunnel() {
+        read -p "Enter your Cloudflare API key: " cf_apikey;
+        read -p "Enter your Cloudflare Account ID: " cfaccount_id;
+        read -p "Enter your Cloudflare Zone ID: " cfzone_id;
+        read -p "Enter the service: " service;
+
+        echo "";
+        tput setaf 3; echo "Process: setup Cloudflare Tunnel;"; tput setaf 7;
+
+        # Verify API key
+        response=$(curl -s -X GET -w "%{http_code}" \
+                -H "Authorization: Bearer $cf_apikey" \
+                -H "Content-Type: application/json" \
+                "https://api.cloudflare.com/client/v4/user/tokens/verify");
+
+        if [ "$response" -ne 200 ]; then
+            echo "Invalid API key.";
+            exit 1;
+        fi
+
+        # Create tunnel
+        cftunnel_name="Misskey_$(date +%Y-%m-%d-%H-%M-%S)";
+        create_tunnel_response=$(curl -s -X POST \
+                                -H "Authorization: Bearer $cf_apikey" \
+                                -H "Content-Type: application/json" \
+                                --data "{\"name\":\"$cftunnel_name\",\"config_src\":\"cloudflare\"}" \
+                                "https://api.cloudflare.com/client/v4/accounts/$cfaccount_id/cfd_tunnel");
+        cftunnel_id=$(echo $create_tunnel_response | jq -r '.result.id');
+
+        # Create DNS record
+        create_dns_record_response=$(curl --request POST \
+                                        --url https://api.cloudflare.com/client/v4/zones/$cfzone_id/dns_records \
+                                        -H "Authorization: Bearer $cf_apikey" \
+                                        -H "Content-Type: application/json" \
+                                        --data "{\"type\":\"CNAME\",\"proxied\":true,\"name\":\"$host\",\"content\":\"$cftunnel_id.cfargotunnel.com\"}"
+        );
+
+        # Set hostnames to tunnel
+        update_tunnel_response=$(curl --request PUT \
+                                --url https://api.cloudflare.com/client/v4/accounts/$cfaccount_id/cfd_tunnel/$cftunnel_id/configurations \
+                                -H "Authorization: Bearer $cf_apikey" \
+                                -H "Content-Type: application/json" \
+                                --data "{\"config\":{\"ingress\":[{\"hostname\":\"$host\",\"service\":\"$service\"},{\"service\":\"http_status:404\"}]}}"
+        );
+
+        # Get token
+        get_token_response=$(curl -s -X GET \
+                                --url https://api.cloudflare.com/client/v4/accounts/$cfaccount_id/cfd_tunnel/$cftunnel_id/token \
+                                -H "Authorization: Bearer $cf_apikey" \
+                                -H "Content-Type: application/json" \
+        );
+        cftunnel_token=$(echo $get_token_response | jq -r '.result');
+
+        # Install cloudflared
+        if [ "arch" = "arm64" ]; then
+            wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64.deb;
+            sudo dpkg -i cloudflared-linux-arm64.deb;
+        else
+            wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb;
+            sudo dpkg -i cloudflared-linux-amd64.deb;
+        fi
+
+        # Setup tunnel service
+        sudo cloudflared service install $cftunnel_token;
+    }
+
     #Install Nginx
     function prepare_nginx() {
         echo "";
@@ -918,7 +985,8 @@ function install() {
         tput setaf 3; echo "Process: prepare nodejs;"; tput setaf 7;
 
         #Add nodejs gpg key
-        curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -;
+        curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/nodesource.gpg;
+        echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list;
 
         #Install nodejs
         apt -qq update -y;
@@ -1284,22 +1352,22 @@ function install() {
         echo "";
 
         #Setup misskey
-        tput setaf 3; echo "Process: setup misskey;" tput setaf 7;
+        tput setaf 3; echo "Process: setup misskey"; tput setaf 7;
         sudo -iu "$misskey_user" <<-EOF;
 		set -eu;
-		cd ~
+		cd ~;
 		cd "$misskey_directory";
 
-		tput setaf 3; echo "Process: install npm packages;" tput setaf 7;
+		tput setaf 3; echo "Process: install npm packages"; tput setaf 7;
 		NODE_ENV=production pnpm install --frozen-lockfile;
 
-		tput setaf 3; echo "Process: build misskey;" tput setaf 7;
+		tput setaf 3; echo "Process: build misskey"; tput setaf 7;
 		NODE_OPTIONS=--max_old_space_size=3072 NODE_ENV=production pnpm run build;
 
-		tput setaf 3; echo "Process: initialize database;" tput setaf 7;
+		tput setaf 3; echo "Process: initialize database"; tput setaf 7;
 		NODE_OPTIONS=--max_old_space_size=3072 pnpm run init;
 
-		tput setaf 3; echo "Check: If Misskey starts correctly;" tput setaf 7;
+		tput setaf 3; echo "Check: If Misskey starts correctly"; tput setaf 7;
 		if NODE_ENV=production timeout 40 npm start 2> /dev/null | grep -q "Now listening on port"; then
 			echo "	OK.";
 		else
@@ -1358,7 +1426,7 @@ function install() {
         echo "Jump to https://$host/ and continue setting up your instance.";
         tput setaf 7;
         echo "This script version is v$version.";
-        echo "Please check https://github.com/srgr0/bash-install to address bugs and updates.";
+        echo "Please check https://github.com/joinmisskey/bash-install to address bugs and updates.";
     }
 
     #Setup Misskey for docker(docker_hub and docker_build)
@@ -1398,20 +1466,16 @@ function install() {
         tput setaf 2;
         tput bold;
         echo "ALL MISSKEY INSTALLATION PROCESSES ARE COMPLETE!";
-        echo "Now all we need to do is run docker run."
+        echo "The setup process is currently running, takes a few minutes (depending on machine specs).";
+        echo "";
+        echo "You can check the setup progress with the following command:";
+        echo "sudo -iu $misskey_user XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker logs -f $docker_container";
+        echo "";
+        echo "After the setup is complete, jump to https://$host/ and continue setting up your instance.";
+        echo "";
         tput setaf 7;
-        echo "Watch the screen."
-        echo "When it shows \"Now listening on port $misskey_port on https://$host\","
-        echo "press Ctrl+C to exit logs and jump to https://$host/ and continue setting up your instance.";
-        echo ""
         echo "This script version is v$version.";
-        echo "Please check https://github.com/srgr0/bash-install to address bugs and updates.";
-        echo ""
-        read -r -p "Press Enter key to execute docker run> ";
-        echo ""
-
-        #Show docker container logs
-        sudo -iu "$misskey_user" XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker logs -f $docker_container;
+        echo "Please check https://github.com/joinmisskey/bash-install to address bugs and updates.";
     }
 
     install_packages;
