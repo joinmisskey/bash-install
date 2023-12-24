@@ -1,0 +1,45 @@
+#Install method
+method=systemd
+
+#Misskey setting
+docker_repository=misskey/misskey:latest
+docker_host_ip=auto
+git_repository=https://github.com/misskey-dev/misskey
+git_branch=master
+misskey_directory=/home/misskey/misskey
+misskey_localhost=localhost
+misskey_user=misskey
+host=127.0.0.1
+misskey_port=3000
+
+#Nginx setting
+nginx_local=true
+ufw=false
+iptables=false
+certbot=false
+certbot_dns_cloudflare=false
+certbot_http=false
+certbot_mailaddress=false
+certbot_cloudflare_mail=false
+certbot_cloudflare_key=false
+
+#Database (PostgreSQL) setting
+db_local=true
+db_host=localhost
+db_port=5432
+db_user=misskey
+db_pass=misskey
+db_name=misskey
+
+#Redis setting
+redis_local=true
+redis_host=localhost
+redis_port=6379
+redis_pass=misskey
+
+#Swap setting
+swap=true
+swap_size=2048
+
+#Skip confirm
+skip_confirm=true
