@@ -1423,7 +1423,7 @@ function install() {
         tput setaf 2;
         tput bold;
         echo "ALL MISSKEY INSTALLATION PROCESSES ARE COMPLETE!";
-        echo "Jump to https://$host/ and continue setting up your instance.";
+        echo "Jump to http://$host/ and continue setting up your instance.";
         tput setaf 7;
         echo "This script version is v$version.";
         echo "Please check https://github.com/joinmisskey/bash-install to address bugs and updates.";
@@ -1471,7 +1471,7 @@ function install() {
         echo "You can check the setup progress with the following command:";
         echo "sudo -iu $misskey_user XDG_RUNTIME_DIR=/run/user/$m_uid DOCKER_HOST=unix:///run/user/$m_uid/docker.sock docker logs -f $docker_container";
         echo "";
-        echo "After the setup is complete, jump to https://$host/ and continue setting up your instance.";
+        echo "After the setup is complete, jump to http://$host/ and continue setting up your instance.";
         echo "";
         tput setaf 7;
         echo "This script version is v$version.";
