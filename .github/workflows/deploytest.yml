@@ -20,4 +20,4 @@ jobs:
     - name: Run install script
       run: |
         sudo chmod 555 ./a.sh
-        sudo bash -x ./a.sh -c ./testenv_systemd.txt
+        sudo bash -x ./a.sh -c ./testenv_githubactions.txt

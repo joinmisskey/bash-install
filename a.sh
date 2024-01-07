@@ -247,6 +247,16 @@ function load_options() {
             exit 1;
         fi
     fi
+
+    #Install setting
+    if [ "$skip_confirm" != true ] && [ "$skip_confirm" != false ]; then
+        tput setaf 1; echo "Error: skip_confirm is invalid."; tput setaf 7;
+        exit 1;
+    fi
+    if [ "$github_actions" != true ] && [ "$github_actions" != false ]; then
+        tput setaf 1; echo "Error: github_actions is invalid."; tput setaf 7;
+        exit 1;
+    fi
 }
 
 #Save options
@@ -300,8 +310,9 @@ function save_options() {
 	swap=$swap
 	swap_size=$swap_size
 
-	#Skip confirm
-	#skip_confirm=false
+	#Install setting
+	skip_confirm=false
+	github_actions=false
 	EOF
     #Disallow undefined variables again
     set -u;
@@ -626,6 +637,11 @@ function options() {
         swap=false;
     fi
     #---end-reg---
+
+    #---reg: Install setting---
+    skip_confirm=false
+    github_actions=false
+    #---end-reg---
 }
 
 #Confirm options
@@ -694,10 +710,15 @@ function confirm_options() {
     fi
     #---end-reg---
 
+    #---reg: Install setting---
+    echo "skip_confirm: $skip_confirm"
+    echo "github_actions: $github_actions"
+    #---end-reg---
+
     echo "";
 
-    #Confirm options if skip_confirm is not true or not set
-    if [ -z ${skip_confirm+x} ] || [ $skip_confirm != true ]; then
+    #Confirm options if skip_confirm is not true
+    if [ $skip_confirm != true ]; then
         echo "Is this correct? [Y/n]";
         read -r -p "> " yn;
         case "$yn" in
@@ -1484,7 +1505,8 @@ function install() {
     if [ $method != "docker_hub" ]; then git_clone; fi
     create_config;
     if $nginx_local; then open_ports; prepare_nginx; fi
-    if [ $method == "systemd" ]; then prepare_nodejs; else prepare_docker; fi
+    if [ $method == "systemd" && $github_actions != true ]; then prepare_nodejs; fi
+    if [ $method != "systemd" ]; then prepare_docker; fi
     if $redis_local; then prepare_redis; fi
     if $db_local; then prepare_postgresql; fi
     create_db;

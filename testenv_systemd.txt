@@ -41,5 +41,6 @@ redis_pass=misskey
 swap=true
 swap_size=2048
 
-#Skip confirm
+#Install setting
 skip_confirm=true
+github_actions=false
