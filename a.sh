@@ -1011,7 +1011,7 @@ function install() {
 
         #Install nodejs
         apt -qq update -y;
-        apt -qq install -y nodejs libjemalloc-dev;
+        apt -qq install -y $($github_actions != true && echo "nodejs") libjemalloc-dev;
 
         #Check version
         tput setaf 3;
@@ -1026,6 +1026,8 @@ function install() {
         tput setaf 3;
         echo "Corepack version:";
         corepack -v;
+        echo "pnpm version:";
+        pnpm -v;
         tput setaf 7;
     }
 
@@ -1505,7 +1507,7 @@ function install() {
     if [ $method != "docker_hub" ]; then git_clone; fi
     create_config;
     if $nginx_local; then open_ports; prepare_nginx; fi
-    if [ $method == "systemd" && $github_actions != true ]; then prepare_nodejs; fi
+    if [ $method == "systemd" ]; then prepare_nodejs; fi
     if [ $method != "systemd" ]; then prepare_docker; fi
     if $redis_local; then prepare_redis; fi
     if $db_local; then prepare_postgresql; fi
