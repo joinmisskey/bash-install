@@ -1011,7 +1011,7 @@ function install() {
 
         #Install nodejs
         apt -qq update -y;
-        apt -qq install -y $($github_actions || echo "nodejs") libjemalloc-dev;
+        apt -qq install -y nodejs libjemalloc-dev;
 
         #Check version
         tput setaf 3;
