@@ -1005,6 +1005,12 @@ function install() {
         echo "";
         tput setaf 3; echo "Process: prepare nodejs;"; tput setaf 7;
 
+        #In GitHub Actions, remove nodejs 18
+        if $github_actions; then
+            apt -qq remove -y nodejs;
+            rm -rf /usr/local/bin/npm /usr/local/bin/node /usr/local/lib/node_modules;
+        fi
+
         #Add nodejs gpg key
         curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/nodesource.gpg;
         echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list;
