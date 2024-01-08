@@ -1017,6 +1017,7 @@ function install() {
         tput setaf 3;
         echo "Nodejs version:";
         node -v;
+	which node;
         tput setaf 7;
 
         #Enable corepack
