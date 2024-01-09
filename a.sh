@@ -147,12 +147,30 @@ function load_options() {
         exit 1;
     fi
 
-    #Nginx setting
+    #Cloudflare Tunnel/Nginx setting
+    if [ "$cloudflaretunnel" != true ] && [ "$cloudflaretunnel" != false ]; then
+        tput setaf 1; echo "Error: cloudflaretunnel is invalid."; tput setaf 7;
+        exit 1;
+    fi
+    if $cloudflaretunnel; then
+        if [ -z "$cf_apikey" ]; then
+            tput setaf 1; echo "Error: cf_apikey is not set."; tput setaf 7;
+            exit 1;
+        fi
+        if [ -z "$cfaccount_id" ]; then
+            tput setaf 1; echo "Error: cfaccount_id is not set."; tput setaf 7;
+            exit 1;
+        fi
+        if [ -z "$cfzone_id" ]; then
+            tput setaf 1; echo "Error: cfzone_id is not set."; tput setaf 7;
+            exit 1;
+        fi
+    fi
     if [ "$nginx_local" != true ] && [ "$nginx_local" != false ]; then
         tput setaf 1; echo "Error: nginx_local is invalid."; tput setaf 7;
         exit 1;
     fi
-    if [ "$nginx_local" = true ]; then
+    if $nginx_local; then
         if [ "$ufw" != true ] && [ "$ufw" != false ]; then
             tput setaf 1; echo "Error: ufw is invalid."; tput setaf 7;
             exit 1;
@@ -165,7 +183,7 @@ function load_options() {
             tput setaf 1; echo "Error: certbot is invalid."; tput setaf 7;
             exit 1;
         fi
-        if [ "$certbot" = true ]; then
+        if $certbot; then
             if [ "$certbot_dns_cloudflare" != true ] && [ "$certbot_dns_cloudflare" != false ]; then
                 tput setaf 1; echo "Error: certbot_dns_cloudflare is invalid."; tput setaf 7;
                 exit 1;
@@ -174,7 +192,7 @@ function load_options() {
                 tput setaf 1; echo "Error: certbot_http is invalid."; tput setaf 7;
                 exit 1;
             fi
-            if [ "$certbot_dns_cloudflare" = true ]; then
+            if $certbot_dns_cloudflare; then
                 if [ -z "$certbot_cloudflare_mail" ]; then
                     tput setaf 1; echo "Error: certbot_cloudflare_mail is not set."; tput setaf 7;
                     exit 1;
@@ -241,7 +259,7 @@ function load_options() {
         tput setaf 1; echo "Error: swap is invalid."; tput setaf 7;
         exit 1;
     fi
-    if [ "$swap" = true ]; then
+    if $swap; then
         if [ -z "$swap_size" ]; then
             tput setaf 1; echo "Error: swap_size is not set."; tput setaf 7;
             exit 1;
@@ -281,8 +299,8 @@ function save_options() {
 	host=$host
 	misskey_port=$misskey_port
 
-	#Nginx setting
-	nginx_local=$nginx_local
+	#Cloudflare Tunnel/Nginx setting
+	cloudflaretunnel=$cloudflaretunnel
 	ufw=$ufw
 	iptables=$iptables
 	certbot=$certbot
@@ -327,29 +345,39 @@ function options() {
     tput setaf 3; echo "Install Method"; tput setaf 7;
 
     #Install method
-    echo "Which method do you want to use to install Misskey?";
-    echo "D = Use Docker Hub / b = Build a Docker image / s = Use Systemd";
-    read -r -p "[D/b/s] > " dbs;
-    case "$dbs" in
-        [bB])
-            #Docker build
-            echo "Build a Docker image.";
-            method="docker_build";
-            misskey_localhost="docker_host";
-            ;;
-        [sS])
-            #Systemd
-            echo "Use Systemd.";
-            method="systemd";
-            misskey_localhost=localhost;
-            ;;
-        *)
-            #Docker Hub
-            echo "Use Docker Hub.";
-            method="docker_hub";
-            misskey_localhost="docker_host";
-            ;;
-    esac
+    while true; do
+        echo "Which method do you want to use to install Misskey?";
+        echo "D = Use Docker Hub / b = Build a Docker image / s = Use Systemd";
+        read -r -p "[D/b/s] > " dbs;
+
+        case "$dbs" in
+            [bB])
+                # Docker build
+                echo "Build a Docker image.";
+                method="docker_build";
+                misskey_localhost="docker_host";
+                break
+                ;;
+            [sS])
+                # Systemd
+                echo "Use Systemd.";
+                method="systemd";
+                misskey_localhost=localhost;
+                break
+                ;;
+            [dD])
+                # Docker Hub
+                echo "Use Docker Hub.";
+                method="docker_hub";
+                misskey_localhost="docker_host";
+                break
+                ;;
+            *)
+                # Invalid input
+                echo "Invalid input, please choose 'D', 'b', or 's'.";
+                ;;
+        esac
+    done
 
     if [ $method = "docker_hub" ] || [ $method = "docker_build" ]; then
         echo "Determine the local IP of this computer as docker host.";
@@ -393,7 +421,7 @@ function options() {
 
     #Hostname
     echo "Enter host where you want to install Misskey:";
-    read -r -p "> " -e -i "example.com" host;
+    read -r -p "> " -e -i "misskey.example.com" host;
     hostarr=(${host//./ });
     echo "OK, let's install $host!";
 
@@ -406,106 +434,162 @@ function options() {
 
     echo "";
 
-    #---reg: Nginx setting---
-    tput setaf 3; echo "Nginx setting"; tput setaf 7;
+    #---reg: Cloudflare Tunnel/Nginx setting---
+    tput setaf 3; echo "Cloudflare Tunnel/Nginx setting"; tput setaf 7;
 
-    #Nginx(including certbot)
-    echo "Do you want to setup nginx?:";
-    read -r -p "[Y/n] > " yn;
-    case "$yn" in
-        [nN])
-            #Not to install nginx
-            echo "Nginx and Let's encrypt certificate will not be installed.";
-            echo "You should open ports manually.";
-            nginx_local=false;
-            certbot=false;
-            ;;
-        *)
-            #Install nginx
-            echo "Nginx will be installed on this computer.";
-            echo "Port 80 and 443 will be opened by modifying iptables.";
-            nginx_local=true;
+    #Cloudflare Tunnel/Nginx
+    while true; do
+        echo "Do you want to setup Cloudflare Tunnel or Nginx?:";
+        echo "C = Use Cloudflare Tunnel / g = Use Nginx / n = Don't use both";
+        read -r -p "[C/g/n] > " cgn;
 
-            echo "";
+        case "$cgn" in
+            [cC])
+                # Cloudflare Tunnel
+                echo "Cloudflare Tunnel will be installed.";
+                cloudflaretunnel=true;
+                nginx_local=false;
+                break
+                ;;
+            [gG])
+                # Nginx
+                echo "Nginx will be installed.";
+                cloudflaretunnel=false;
+                nginx_local=true;
+                break
+                ;;
+            [nN])
+                # Not to use both
+                echo "Don't use both.";
+                cloudflaretunnel=false;
+                nginx_local=false;
+                break
+                ;;
+            *)
+                # Invalid input
+                echo "Invalid input, please choose 'C', 'g', or 'n'.";
+                ;;
+        esac
+    done
 
-            #Method to open ports
+    echo "";
+
+    #---sub-reg: Cloudflare Tunnel setting---
+    if $cloudflaretunnel; then
+        echo "Some information is required to setup Cloudflare Tunnel.";
+        echo "Please check the details at https://github.com/joinmisskey/bash-install/blob/v4/README.md and prepare the required information.";
+
+        echo "Enter your Cloudflare API key:";
+        read -r -p "> " cf_apikey;
+        echo "Enter your Cloudflare Account ID:";
+        read -r -p "> " -e cfaccount_id;
+        echo "Enter your Cloudflare Zone ID:";
+        read -r -p "> " -e cfzone_id;
+    fi
+    #---end-sub-reg---
+
+    #---sub-reg: Nginx setting---
+    if $nginx_local; then
+        #Method to open ports
+        while true; do
             echo "Do you want it to open ports, to setup ufw or iptables?:";
             echo "u = To setup ufw / i = To setup iptables / N = Not to open ports";
             read -r -p "[u/i/N] > " yn2;
+
             case "$yn2" in
                 [uU])
-                    #ufw
+                    # ufw
                     echo "OK, it will use ufw.";
                     ufw=true;
                     iptables=false;
                     echo "SSH port: ";
                     read -r -p "> " -e -i "22" ssh_port;
+                    break
                     ;;
                 [iI])
-                    #iptables
+                    # iptables
                     echo "OK, it will use iptables.";
                     ufw=false;
                     iptables=true;
                     echo "SSH port: ";
                     read -r -p "> " -e -i "22" ssh_port;
+                    break
                     ;;
-                *)
-                    #Not to open ports
+                [nN])
+                    # Not to open ports
                     echo "OK, you should open ports manually.";
                     ufw=false;
                     iptables=false;
-                    ;;
-            esac
-
-            echo "";
-
-            #---sub-reg: Certbot setting---
-            tput setaf 3; echo "Certbot setting"; tput setaf 7;
-
-            #Certbot
-            echo "Do you want it to setup certbot to connect with https?:";
-            read -r -p "[Y/n] > " yn2;
-            case "$yn2" in
-                [nN])
-                    #Not to use certbot
-                    certbot=false;
-                    echo "OK, you don't setup certbot.";
+                    break
                     ;;
                 *)
-                    #Use certbot
-                    certbot=true;
-                    echo "OK, you want to setup certbot.";
+                    # 無効な入力
+                    echo "Invalid input, please choose 'u', 'i', or 'N'.";
                     ;;
             esac
+        done
 
-            echo "";
+        echo "";
 
-            #Method to verify domain
-            if [ $certbot = true ]; then
-                echo "Do you use Cloudflare DNS?:";
+        #---sub2-reg: Certbot setting---
+        tput setaf 3; echo "Certbot setting"; tput setaf 7;
+
+        #Certbot
+        while true; do
+            echo "Do you want it to setup certbot to connect with https?:";
+            read -r -p "[Y/n] > " yn2;
+
+            case "$yn2" in
+                [yY])
+                    # Use certbot
+                    certbot=true;
+                    echo "OK, you want to setup certbot.";
+                    break
+                    ;;
+                [nN])
+                    # Not to use certbot
+                    certbot=false;
+                    echo "OK, you don't setup certbot.";
+                    break
+                    ;;
+                *)
+                    # Invalid input
+                    echo "Invalid input, please choose 'Y' or 'n'.";
+                    ;;
+            esac
+        done
+
+        echo "";
+
+        #Method to verify domain
+        if $certbot; then
+            while true; do
+                echo "Do you use Cloudflare DNS API?:";
                 read -r -p "[Y/n] > " yn3;
+
                 case "$yn3" in
                     [nN])
-                        #Not to use Cloudflare DNS
+                        # Not to use Cloudflare DNS
                         certbot_dns_cloudflare=false;
                         certbot_http=true;
                         echo "OK, you don't use Cloudflare.";
                         echo "";
-                        echo "The domain is authenticated by http challenge. ";
+                        echo "The domain is authenticated by http challenge.";
                         echo "Make sure that your DNS is configured to this machine.";
 
                         echo "";
 
                         echo "Enter Email address to register Let's Encrypt certificate";
                         read -r -p "> " certbot_mailaddress;
+                        break
                         ;;
-                    *)
-                        #Use Cloudflare DNS
+                    [yY])
+                        # Use Cloudflare DNS
                         certbot_dns_cloudflare=true;
                         certbot_http=false;
                         echo "OK, you want to use Cloudflare DNS. Let's set up Cloudflare DNS.";
                         echo "";
-                        echo "The domain is authenticated by DNS challenge. ";
+                        echo "The domain is authenticated by DNS challenge.";
                         echo "Make sure that Cloudflare DNS is configured and is in proxy mode.";
 
                         echo "";
@@ -519,17 +603,24 @@ function options() {
 
                         mkdir -p /etc/cloudflare;
                         cat > /etc/cloudflare/cloudflare.ini <<-EOF
-                        dns_cloudflare_email = $certbot_cloudflare_mail
-                        dns_cloudflare_api_key = $certbot_cloudflare_key
+						dns_cloudflare_email = $certbot_cloudflare_mail
+						dns_cloudflare_api_key = $certbot_cloudflare_key
 						EOF
                         #↑tab indent
 
                         chmod 600 /etc/cloudflare/cloudflare.ini;
+                        break
+                        ;;
+                    *)
+                        # Invalid input
+                        echo "Invalid input, please choose 'Y' or 'n'.";
                         ;;
                 esac
-            fi
-            #---end-sub-reg---
-    esac
+            done
+        fi
+        #---end-sub2-reg---
+    fi
+    #---end-sub-reg---
     #---end-reg---
 
     echo "";
@@ -538,29 +629,38 @@ function options() {
     tput setaf 3; echo "Database (PostgreSQL) setting"; tput setaf 7;
 
     #PostgreSQL
-    echo "Do you want to install postgres locally?:";
-    echo "(If you have run this script before in this computer, choose n and enter values you have set.)";
-    read -r -p "[Y/n] > " yn
-    case "$yn" in
-        [nN])
-            #Not to install postgres locally
-            echo "You should prepare postgres manually until database is created.";
-            db_local=false;
+    while true; do
+        echo "Do you want to install postgres locally?:";
+        echo "(If you have run this script before in this computer, choose n and enter values you have set.)";
+        read -r -p "[Y/n] > " yn
 
-            echo "Database host: ";
-            read -r -p "> " -e -i "$misskey_localhost" db_host;
-            echo "Database port:";
-            read -r -p "> " -e -i "5432" db_port;
-            ;;
-        *)
-            #Install postgres locally
-            echo "PostgreSQL will be installed on this computer at $misskey_localhost:5432.";
-            db_local=true;
+        case "$yn" in
+            [nN])
+                # Not to install postgres locally
+                echo "You should prepare postgres manually until database is created.";
+                db_local=false;
 
-            db_host=$misskey_localhost;
-            db_port=5432;
-            ;;
-    esac
+                echo "Database host: ";
+                read -r -p "> " -e -i "$misskey_localhost" db_host;
+                echo "Database port:";
+                read -r -p "> " -e -i "5432" db_port;
+                break
+                ;;
+            [yY])
+                # Install postgres locally
+                echo "PostgreSQL will be installed on this computer at $misskey_localhost:5432.";
+                db_local=true;
+
+                db_host=$misskey_localhost;
+                db_port=5432;
+                break
+                ;;
+            *)
+                # Invalid input
+                echo "Invalid input, please choose 'Y' or 'n'.";
+                ;;
+        esac
+    done
 
     #Database user name and password, database name
     echo "Database user name: ";
@@ -568,7 +668,7 @@ function options() {
     echo "Database user password: ";
     read -r -p "> " db_pass;
     echo "Database name:";
-    read -r -p "> " -e -i "mk1" db_name;
+    read -r -p "> " -e -i "misskey" db_name;
     #---end-reg---
 
     echo "";
@@ -577,29 +677,38 @@ function options() {
     tput setaf 3; echo "Redis setting"; tput setaf 7;
 
     #Redis
-    echo "Do you want to install redis locally?:";
-    echo "(If you have run this script before in this computer, choose n and enter values you have set.)"
-    read -r -p "[Y/n] > " yn
-    case "$yn" in
-        [nN])
-            #Not to install redis locally
-            echo "You should prepare Redis manually.";
-            redis_local=false;
+    while true; do
+        echo "Do you want to install redis locally?:";
+        echo "(If you have run this script before in this computer, choose n and enter values you have set.)"
+        read -r -p "[Y/n] > " yn
 
-            echo "Redis host:";
-            read -r -p "> " -e -i "$misskey_localhost" redis_host;
-            echo "Redis port:";
-            read -r -p "> " -e -i "6379" redis_port;
-            ;;
-        *)
-            #Install redis locally
-            echo "Redis will be installed on this computer at $misskey_localhost:6379.";
-            redis_local=true;
+        case "$yn" in
+            [nN])
+                # Not to install redis locally
+                echo "You should prepare Redis manually.";
+                redis_local=false;
 
-            redis_host=$misskey_localhost;
-            redis_port=6379;
-            ;;
-    esac
+                echo "Redis host:";
+                read -r -p "> " -e -i "$misskey_localhost" redis_host;
+                echo "Redis port:";
+                read -r -p "> " -e -i "6379" redis_port;
+                break
+                ;;
+            [yY])
+                # Install redis locally
+                echo "Redis will be installed on this computer at $misskey_localhost:6379.";
+                redis_local=true;
+
+                redis_host=$misskey_localhost;
+                redis_port=6379;
+                break
+                ;;
+            *)
+                # 無効な入力
+                echo "Invalid input, please choose 'Y' or 'n'.";
+                ;;
+        esac
+    done
 
     #Redis password
     echo "Redis password:";
@@ -615,23 +724,32 @@ function options() {
     if [ "${mem_allarr[1]}" -lt 3 ]; then
         tput setaf 3; echo "Swap setting"; tput setaf 7;
 
-        echo "This computer doesn't have enough RAM (>= 3GB, Current ${mem_allarr[1]}GB).";
-        echo "Do you want to make swap?:";
-        read -r -p "[Y/n] > " yn;
-        case "$yn" in
-            [nN])
-                #Not to make swap
-                echo "OK, you don't make swap. But the system may not work properly.";
-                swap=false;
-                ;;
-            *)
-                #Make swap
-                echo "OK, you make swap.";
-                swap=true;
-                swap_size=(3 - "${mem_allarr[1]}")*1024;
-                echo "Swap size: ${swap_size}MB";
-                ;;
-        esac
+        while true; do
+            echo "This computer doesn't have enough RAM (>= 3GB, Current ${mem_allarr[1]}GB).";
+            echo "Do you want to make swap?:";
+            read -r -p "[Y/n] > " yn;
+
+            case "$yn" in
+                [yY])
+                    # Make swap
+                    echo "OK, you make swap.";
+                    swap=true;
+                    swap_size=$((3 - "${mem_allarr[1]}"))*1024;
+                    echo "Swap size: ${swap_size}MB";
+                    break
+                    ;;
+                [nN])
+                    # Not to make swap
+                    echo "OK, you don't make swap. But the system may not work properly.";
+                    swap=false;
+                    break
+                    ;;
+                *)
+                    # Invalid input
+                    echo "Invalid input, please choose 'Y' or 'n'.";
+                    ;;
+            esac
+        done
     else
         #Need not to make swap
         swap=false;
@@ -668,13 +786,20 @@ function confirm_options() {
     echo "Misskey port: $misskey_port";
     #---end-reg---
 
-    #---reg: Nginx setting---
+    #---reg: Cloudflare Tunnel/Nginx setting---
+    echo "Cloudflare Tunnel: $cloudflaretunnel";
+    if $cloudflaretunnel: then
+        echo "Cloudflare API key: **********";
+        echo "Cloudflare Account ID: $cfaccount_id";
+        echo "Cloudflare Zone ID: $cfzone_id";
+    fi
+
     echo "Nginx: $nginx_local";
-    if [ $nginx_local = true ]; then
+    if $nginx_local; then
         echo "UFW: $ufw";
         echo "iptables: $iptables";
         echo "Certbot: $certbot";
-        if [ $certbot = true ]; then
+        if $certbot; then
             echo "Certbot DNS_Cloudflare: $certbot_dns_cloudflare";
             echo "Certbot HTTP: $certbot_http";
             if [ $certbot_dns_cloudflare = true ]; then
@@ -705,7 +830,7 @@ function confirm_options() {
 
     #---reg: Swap setting---
     echo "Swap: $swap";
-    if [ $swap = true ]; then
+    if $swap; then
         echo "Swap size: ${swap_size}MB";
     fi
     #---end-reg---
@@ -719,20 +844,28 @@ function confirm_options() {
 
     #Confirm options if skip_confirm is not true
     if [ $skip_confirm != true ]; then
-        echo "Is this correct? [Y/n]";
-        read -r -p "> " yn;
-        case "$yn" in
-            [nN])
-                #Not to install
-                echo "OK, you don't install Misskey.";
-                echo "if you want to change options and install Misskey, run this script again.";
-                exit 1;
-                ;;
-            *)
-                #Install
-                echo "OK, let's install Misskey!";
-                ;;
-        esac
+        while true; do
+            echo "Is this correct? [Y/n]";
+            read -r -p "> " yn;
+
+            case "$yn" in
+                [yY])
+                    # Install
+                    echo "OK, let's install Misskey!";
+                    break
+                    ;;
+                [nN])
+                    # Not to install
+                    echo "OK, you don't install Misskey.";
+                    echo "if you want to change options and install Misskey, run this script again.";
+                    exit 1
+                    ;;
+                *)
+                    # 無効な入力
+                    echo "Invalid input, please choose 'Y' or 'n'.";
+                    ;;
+            esac
+        done
     fi
 }
 
@@ -904,13 +1037,12 @@ function install() {
 
     #Setup Cloudflare Tunnel
     function setup_cloudflaretunnel() {
-        read -p "Enter your Cloudflare API key: " cf_apikey;
-        read -p "Enter your Cloudflare Account ID: " cfaccount_id;
-        read -p "Enter your Cloudflare Zone ID: " cfzone_id;
-        read -p "Enter the service: " service;
-
         echo "";
         tput setaf 3; echo "Process: setup Cloudflare Tunnel;"; tput setaf 7;
+
+        # Set variables
+        service=http://127.0.0.1:$misskey_port;
+
 
         # Verify API key
         response=$(curl -s -X GET -w "%{http_code}" \
@@ -958,9 +1090,11 @@ function install() {
 
         # Install cloudflared
         if [ "arch" = "arm64" ]; then
+            echo "Architecture: arm64";
             wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64.deb;
             sudo dpkg -i cloudflared-linux-arm64.deb;
         else
+            echo "Architecture: amd64";
             wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb;
             sudo dpkg -i cloudflared-linux-amd64.deb;
         fi
@@ -1515,6 +1649,7 @@ function install() {
     if [ $method != "docker_hub" ]; then git_clone; fi
     create_config;
     if $nginx_local; then open_ports; prepare_nginx; fi
+    if $cloudflaretunnel; then setup_cloudflaretunnel; fi
     if [ $method == "systemd" ]; then prepare_nodejs; fi
     if [ $method != "systemd" ]; then prepare_docker; fi
     if $redis_local; then prepare_redis; fi

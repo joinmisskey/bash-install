@@ -12,7 +12,11 @@ misskey_user=misskey
 host=127.0.0.1
 misskey_port=3000
 
-#Nginx setting
+#Cloudflare Tunnel/Nginx setting
+cloudflaretunnel=false
+cf_apikey=hogehoge
+cfaccount_id=hogehoge
+cfzone_id=hogehoge
 nginx_local=false
 ufw=false
 iptables=false
