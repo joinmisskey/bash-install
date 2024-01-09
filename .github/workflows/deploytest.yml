@@ -1,0 +1,20 @@
+name: deploy test
+
+on:
+  push:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set environment variable (for tput command)
+      run: echo "TERM=xterm" >> $GITHUB_ENV
+
+    - name: Run install script
+      run: |
+        sudo chmod 555 ./misskey-install.sh
+        sudo bash -x ./misskey-install.sh -c ./testenv_githubactions.txt
+
