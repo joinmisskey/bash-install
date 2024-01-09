@@ -921,7 +921,12 @@ function install() {
         echo "";
         tput setaf 3; echo "Process: clone git repository;"; tput setaf 7;
 
-        sudo -iu "$misskey_user" git clone -b "$git_branch" --depth 1 --recursive "$git_repository" "$misskey_directory";
+        #git_repositoryがlocalならgit cloneしない
+        if [ $git_repository = "local" ]; then
+            echo "git_repository is local, skip git clone.";
+        else
+            sudo -iu "$misskey_user" git clone -b "$git_branch" --depth 1 --recursive "$git_repository" "$misskey_directory";
+        fi
     }
 
     #Create misskey config file
@@ -1646,7 +1651,7 @@ function install() {
     install_packages;
     add_user;
     delete_misskey_directory;
-    if [ $method != "docker_hub" ] && [ $github_actions != true ]; then git_clone; fi
+    if [ $method != "docker_hub" ]; then git_clone; fi
     create_config;
     if $nginx_local; then open_ports; prepare_nginx; fi
     if $cloudflaretunnel; then setup_cloudflaretunnel; fi
