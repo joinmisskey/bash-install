@@ -3,7 +3,7 @@ script structure
 1. スクリプト概要の表示
 2. env判定(root,linux,arch,ram)
 3. オプション選択
-    0. compose.yamlが指定されていればそれを読み込む #値が不正な場合、エラーを出す(値を直すか、compose.yamlを削除するように言う)
+    0. compose.yamlが指定されていればそれを読み込む #値が不正な場合、エラーを出す(値を直すか、compose.yamlを削除するように指示)
     1. method選択(dockerhub,docker_build,systemd)
     2. source入力
         - docker_hub
