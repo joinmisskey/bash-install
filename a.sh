@@ -923,6 +923,8 @@ function install() {
 
         if [[ $git_repository == local_* ]]; then
             cp -r ${git_repository#local_} "$misskey_directory";
+            chown -R "$misskey_user":"$misskey_user" "$misskey_directory";
+            chmod -R 755 "$misskey_directory";
         else
             sudo -iu "$misskey_user" git clone -b "$git_branch" --depth 1 --recursive "$git_repository" "$misskey_directory";
         fi
