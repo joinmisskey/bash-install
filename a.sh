@@ -921,13 +921,6 @@ function install() {
         echo "";
         tput setaf 3; echo "Process: clone git repository;"; tput setaf 7;
         sudo -iu "$misskey_user" git clone -b "$git_branch" --depth 1 --recursive "$git_repository" "$misskey_directory";
-        if $github_actions; then
-            sudo -iu "$misskey_user" <<-EOF;
-			cd "$misskey_directory";
-			SHA=$(git log -1 --format="%H")
-			echo "SHA=$SHA" >> $GITHUB_ENV
-			EOF
-        fi
     }
 
     #Create misskey config file
