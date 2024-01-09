@@ -920,14 +920,7 @@ function install() {
     function git_clone() {
         echo "";
         tput setaf 3; echo "Process: clone git repository;"; tput setaf 7;
-
-        if [[ $git_repository == local_* ]]; then
-            cp -r ${git_repository#local_} "$misskey_directory";
-            chown -R "$misskey_user":"$misskey_user" "$misskey_directory";
-            chmod -R 755 "$misskey_directory";
-        else
-            sudo -iu "$misskey_user" git clone -b "$git_branch" --depth 1 --recursive "$git_repository" "$misskey_directory";
-        fi
+        sudo -iu "$misskey_user" git clone -b "$git_branch" --depth 1 --recursive "$git_repository" "$misskey_directory";
     }
 
     #Create misskey config file
