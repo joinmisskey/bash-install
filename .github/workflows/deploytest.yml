@@ -16,6 +16,6 @@ jobs:
     - name: Run install script
       run: |
         sudo chmod 555 ./a.sh
-        sed -i 's/git_repository=local/git_repository=https:\/\/github.com\/misskey-dev\/misskey/' ./testenv_githubactions.txt
-        sed -i 's/git_branch=local/git_branch=master/' ./testenv_githubactions.txt
+        sed -i 's/git_repository=github_actions/git_repository=https:\/\/github.com\/misskey-dev\/misskey/' ./testenv_githubactions.txt
+        sed -i 's/git_branch=github_actions/git_branch=master/' ./testenv_githubactions.txt
         sudo bash -x ./a.sh -c ./testenv_githubactions.txt
