@@ -922,8 +922,8 @@ function install() {
         tput setaf 3; echo "Process: clone git repository;"; tput setaf 7;
 
         #git_repositoryがlocalならgit cloneしない
-        if [ $git_repository = "local" ]; then
-            echo "git_repository is local, skip git clone.";
+        if [ $git_repository = "githubactions" ]; then
+            cp -r $GITHUB_WORKSPACE "$misskey_directory";
         else
             sudo -iu "$misskey_user" git clone -b "$git_branch" --depth 1 --recursive "$git_repository" "$misskey_directory";
         fi
