@@ -4,8 +4,8 @@ method=docker_hub
 #Misskey setting
 docker_repository=misskey/misskey:latest
 docker_host_ip=auto
-git_repository=https://github.com/misskey-dev/misskey
-git_branch=master
+git_repository=hogehoge
+git_branch=hogehoge
 misskey_directory=/home/misskey/misskey
 misskey_localhost=docker_host
 misskey_user=misskey
