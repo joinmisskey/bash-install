@@ -15,6 +15,6 @@ jobs:
 
     - name: Run install script
       run: |
-        sudo chmod 555 ./a.sh
-        sudo bash -x ./a.sh -c ./testenv_githubactions.txt
+        sudo chmod 555 ./misskey-install.sh
+        sudo bash -x ./misskey-install.sh -c ./testenv_githubactions.txt
 
