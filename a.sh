@@ -788,7 +788,7 @@ function confirm_options() {
 
     #---reg: Cloudflare Tunnel/Nginx setting---
     echo "Cloudflare Tunnel: $cloudflaretunnel";
-    if $cloudflaretunnel: then
+    if $cloudflaretunnel; then
         echo "Cloudflare API key: **********";
         echo "Cloudflare Account ID: $cfaccount_id";
         echo "Cloudflare Zone ID: $cfzone_id";
