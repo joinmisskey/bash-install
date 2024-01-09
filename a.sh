@@ -1023,7 +1023,7 @@ function install() {
         tput setaf 3;
         echo "Nodejs version:";
         node -v;
-	which node;
+        which node;
         tput setaf 7;
 
         #Enable corepack
@@ -1508,6 +1508,7 @@ function install() {
         echo "Please check https://github.com/joinmisskey/bash-install to address bugs and updates.";
     }
 
+    #### Please do not change the order of the installation process. ####
     install_packages;
     add_user;
     delete_misskey_directory;
