@@ -13,7 +13,7 @@ host=127.0.0.1
 misskey_port=3000
 
 #Nginx setting
-nginx_local=true
+nginx_local=false
 ufw=false
 iptables=false
 certbot=false
