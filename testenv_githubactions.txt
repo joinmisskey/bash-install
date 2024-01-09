@@ -4,8 +4,8 @@ method=systemd
 #Misskey setting
 docker_repository=hogehoge
 docker_host_ip=hogehoge
-git_repository=githubactions
-git_branch=githubactions
+git_repository=https://github.com/misskey-dev/misskey
+git_branch=master
 misskey_directory=/home/misskey/misskey
 misskey_localhost=localhost
 misskey_user=misskey
