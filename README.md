@@ -1,93 +1,66 @@
-# Misskey install shell script v3.2.1
+# Misskey install shell script v4.0.0-beta
 
-Misskeyを簡単にインストールするためのシェルスクリプトができました！
-
-いくつかの質問に答えるだけで、UbuntuサーバーへMisskey(v12)を簡単にインストールできます！
-
-また、アップデートスクリプトもあります。
-
-[v12の場合はこちら](https://github.com/joinmisskey/bash-install/blob/a096e874f93d493aa68975a31be9ce12d644e767/README.md)  
-[**English version**](./README.en.md)
+Misskeyを簡単にインストールするためのシェルスクリプトができました！  
+いくつかの質問に答えるだけで、UbuntuサーバーへMisskeyを簡単にインストールできます！  
+~~アップデート用のスクリプトも用意されています。~~ v4では準備中  
 
 ## ライセンス
-[MIT License](./LICENSE)
+[MIT License](./LICENSE)  
 
 ## 準備するもの
-1. ドメイン
-2. Ubuntuがインストールされたサーバー
-3. Cloudflareアカウント（推奨）
-
-Let's Encryptの認証を試行できる回数が少ないので、サーバーのネットワークやDNSの設定を十分確認してからインストールを開始してください。
-
-## Cloudflareの設定
-Cloudflareを使う場合、Cloudflareのドメインの設定を完了してからインストールを開始するようにしてください。  
-ネームサーバーの適用には最大で3日程度かかる場合があります。
-
-また、nginxとCloudflareを設定する場合、Cloudflareの設定画面にて、
-
-- DNSを設定してください。
-- SSL/TLS設定にて、暗号化モードを「フル」に設定してください。
+1. ドメイン  
+2. Ubuntuがインストールされたサーバー  
+3. Cloudflareアカウント（推奨）  
 
 ## 操作
 ### 1. SSH
 サーバーにSSH接続します。  
-（サーバーのデスクトップを開いている方はシェルを開きましょう。）
+（サーバーのデスクトップを開いている方はシェルを開きましょう。）  
 
 ### 2. 環境を最新にする
-すべてのパッケージを最新にし、再起動します。
-
+インストール前に、サーバーにインストールされている全てのパッケージを最新にし、再起動します。  
 ```
 sudo apt update; sudo apt full-upgrade -y; sudo reboot
 ```
 
 ### 3. インストールをはじめる
-SSHを接続しなおして、Misskeyのインストールを始めましょう。
+> [!TIP]
+> インストール前に[Tips](#Tips)を一読されることをお勧めします。  
 
-ただ、インストール前に[Tips](#Tips)を読むことを強くお勧めします。
+再度サーバーにSSH接続し、管理者権限のある(sudoを実行できる)アカウントで以下のコマンドを実行してください。  
+
+実行後、指示に従ってオプションを選択し、しばらく待つとインストールが完了します。  
 
 ```
-wget https://raw.githubusercontent.com/joinmisskey/bash-install/main/ubuntu.sh -O ubuntu.sh; sudo bash ubuntu.sh
+wget https://raw.githubusercontent.com/joinmisskey/bash-install/v4/misskey-install.sh -O misskey-install.sh; sudo bash misskey-install.sh
 ```
-
-example.comは自分のドメインに置き換えてください。
 
 ### 4. アップデートする
-アップデートのためのスクリプトもあります。
+> [!IMPORTANT]
+> アップデートスクリプトは、環境のアップデートは行いません。CHANGELOG（日本語）および[GitHubのリリース一覧（英語）](https://github.com/joinmisskey/bash-install/releases)を参考に、適宜マイグレーション操作を行なってください。  
 
-アップデートスクリプトは、環境のアップデートは行いません。CHANGELOG（日本語）および[GitHubのリリース一覧（英語）](https://github.com/joinmisskey/bash-install/releases)を参考に、適宜マイグレーション操作を行なってください。
-
-まずはダウンロードします。
-
-```
-wget https://raw.githubusercontent.com/joinmisskey/bash-install/main/update.ubuntu.sh -O update.sh
-```
-
-アップデートしたいときにスクリプトを実行してください。
+~~サーバーにSSH接続し、管理者権限のある(sudoを実行できる)アカウントで以下のコマンドを実行してください。~~  
 
 ```
-sudo bash update.sh
+※以下は準備中です。まだ動作しません。
+wget https://raw.githubusercontent.com/joinmisskey/bash-install/v4/misskey-update.sh -O misskey-update.sh; sudo bash misskey-update.sh
 ```
-
-- systemd環境では、`-r`オプションでシステムのアップデートと再起動を行うことができます。
-- docker環境では、引数に更新後のリポジトリ名:タグ名を指定することができます。
-
-## 動作を確認した環境
-
-### Oracle Cloud Infrastructure
-
-このスクリプトは、Oracle Cloud InfrastructureのAlways Freeサービスで提供されている2種類のシェイプのいずれにおいても動作します。
-
-- VM.Standard.E2.1.Micro (AMD)
-- VM.Standard.A1.Flex (ARM) [1OCPU RAM6GB or greater]
-
-iptablesを使うようにしてください。
 
 ## Issues & PRs Welcome
-上記の環境で動作しない場合、バグの可能性があります。インストールの際に指定された条件を記載の上、GitHubのIssue機能にてご報告いただければ幸いです。
+スクリプトが正常に動作しない場合、まずは以下をご確認ください。  
+- AMD64(ARM64)で実行していること ※ARM64は検証環境が無いため、サポートが行えない場合があります
+- スクリプトをUbuntu LTSで実行していること  
+  Ubuntu以外のOSでは正しく動作しない可能性が高いです。またLTS以外のバージョンでは、Misskeyの実行に必要なパッケージがそのバージョンをサポートしていない可能性があります。  
+- サーバー内で他のソフトウェア(別構成のMisskeyを含む)をインストール・実行していないこと  
+  既にサーバー内で他のソフトウェアが実行されている場合、Misskeyが正常にインストールできない可能性があります。MisskeyをインストールするサーバーにはMisskeyのみをインストールすることをお勧めします。  
+- 最新版のスクリプトをダウンロードしていること  
+  最新版であるか不明な場合、一度スクリプトを削除して再度ダウンロードしてください。  
 
-上記以外の環境についてのサポートは難しいですが、状況を詳しくお教えいただければ解決できる可能性があります。
+上記を確認してもスクリプトが動作しない場合、バグの可能性があります。  
+インストールの際に指定されたオプションやインストールログを添付し、GitHubのIssue機能にてお知らせください。  
 
-機能の提案についても歓迎いたします。
+機能の提案についても歓迎いたします。  
+
 
 # Tips
 選択肢の選び方や仕様についてなど。
