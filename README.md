@@ -48,7 +48,8 @@ wget https://raw.githubusercontent.com/joinmisskey/bash-install/v4/misskey-updat
 
 ## Issues & PRs Welcome
 スクリプトが正常に動作しない場合、まずは以下をご確認ください。  
-- AMD64(ARM64)で実行していること ※ARM64は検証環境が無いため、サポートが行えない場合があります
+- AMD64(ARM64)で実行していること
+  ※ARM64は検証環境が無いため、サポートが行えない場合があります。ご了承ください。
 - スクリプトをUbuntu LTSで実行していること  
   Ubuntu以外のOSでは正しく動作しない可能性が高いです。またLTS以外のバージョンでは、Misskeyの実行に必要なパッケージがそのバージョンをサポートしていない可能性があります。  
 - サーバー内で他のソフトウェア(別構成のMisskeyを含む)をインストール・実行していないこと  
@@ -63,12 +64,18 @@ wget https://raw.githubusercontent.com/joinmisskey/bash-install/v4/misskey-updat
 
 
 # Tips
-選択肢の選び方や仕様についてなど。
+## Cloudflare Tunnelをインストールする場合
+本スクリプトでは、Misskeyと同時にCloudflare Tunnelをインストール・セットアップすることが出来ます。  
+Cloudflare Tunnelをインストールする場合、CloudflareのAPI Key, Account ID, Zone IDが必要です。オプション選択中に入力を求められますので、事前に以下の説明に従って準備を行ってください。  
+[How to Use / Prepare - Srgr0/cloudflaretunnel_installer](https://github.com/Srgr0/cloudflaretunnel_installer?tab=readme-ov-file#prepare)
 
+> [!WARNING]
+> 以下は内容更新中です。実際のスクリプトの動作と説明が異なる部分がありますので、スクリプト本体も合わせてご確認ください。  
+~~~
 ## Systemd or Docker?
 v1から、インストールメソッドにsystemdとDockerとを選べるようにしました。
 
-Dockerと言っても、**MisskeyだけをDockerで実行**し、RedisやPostgresなどはホストで直接実行します。  
+Dockerと言っても、**MisskeyのみをDockerで実行**し、RedisやPostgresなどはホストで直接実行します。  
 [docker-composeですべての機能を動かす方法については、mamemonongaさんが作成したこちらの記事がおすすめです。](https://gist.github.com/mamemomonga/5549bb69cad8e5618e5527593d4890e0)
 
 Docker Hubイメージを使う設定であれば、Misskeyのビルドが不要になるため、**一番お勧めです**。  
@@ -206,3 +213,4 @@ journalctlでログを確認すると、たいていre2が云々という記述�
 ## Q. 同じサーバーにもう1つMisskeyを建てたい
 スクリプトは同じサーバーに追加でMisskeyをインストールすることは想定していません。  
 幾つかの設定が上書きされるか、途中でエラーになってしまうでしょう。
+~~~
