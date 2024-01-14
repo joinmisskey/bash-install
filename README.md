@@ -66,8 +66,20 @@ wget https://raw.githubusercontent.com/joinmisskey/bash-install/v4/misskey-updat
 # Tips
 ## Cloudflare Tunnelをインストールする場合
 本スクリプトでは、Misskeyと同時にCloudflare Tunnelをインストール・セットアップすることが出来ます。  
-Cloudflare Tunnelをインストールする場合、CloudflareのAPI Key, Account ID, Zone IDが必要です。オプション選択中に入力を求められますので、事前に以下の説明に従って準備を行ってください。  
-[How to Use / Prepare - Srgr0/cloudflaretunnel_installer](https://github.com/Srgr0/cloudflaretunnel_installer?tab=readme-ov-file#prepare)
+Cloudflare Tunnelをインストールする場合、CloudflareのAPI Key, Account ID, Zone IDが必要です。オプション選択中に入力を求められますので、事前に以下の手順で準備を行ってください。  
+1. Login to your cloudflare account
+2. Go to [API Tokens](https://dash.cloudflare.com/profile/api-tokens)
+3. Create Token > Create Custom Token
+4. It requires permission to `` Account/Cloudflare Tunnel - Edit `` and `` Zones/<yourzone>/DNS - Edit ``
+5. Enter other values as appropriate (Tip: Because the API Key is used only during installation, we strongly recommend that you set the expiration as short as possible)
+6. Continue to summary > Create Token, and Copy your API Key
+7. Go to [Dashboard Home](https://dash.cloudflare.com/)
+8. Go to your website(zone) page
+9. In the API section, copy the Zone ID and Account ID (Tip: The API section is located at the bottom right or bottom of the page)
+
+These instructions are quoted from the following: [https://github.com/Srgr0/cloudflaretunnel_installer?tab=readme-ov-file#prepare
+](https://github.com/Srgr0/cloudflaretunnel_installer?tab=readme-ov-file#prepare)  
+
 
 > [!WARNING]
 > 以下は内容更新中です。実際のスクリプトの動作と説明が異なる部分がありますので、スクリプト本体も合わせてご確認ください。  
