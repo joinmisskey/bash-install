@@ -695,7 +695,7 @@ echo "Process: add nginx config;"
 tput setaf 7;
 cat >> "/etc/nginx/conf.d/$host.conf" << NGEOF
     # Change to your upload limit
-    client_max_body_size 80m;
+    client_max_body_size 250m;
 
     # Proxy to Node
     location / {
