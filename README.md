@@ -1,4 +1,4 @@
-# Misskey install shell script v3.2.1
+# Misskey install shell script v3.2.2
 
 Misskeyを簡単にインストールするためのシェルスクリプトができました！
 
@@ -56,7 +56,7 @@ example.comは自分のドメインに置き換えてください。
 
 アップデートスクリプトは、環境のアップデートは行いません。CHANGELOG（日本語）および[GitHubのリリース一覧（英語）](https://github.com/joinmisskey/bash-install/releases)を参考に、適宜マイグレーション操作を行なってください。
 
-まずはダウンロードします。
+まずはダウンロードします。アップデートスクリプトのアップデートがあった場合、wgetしなおしてください。
 
 ```
 wget https://raw.githubusercontent.com/joinmisskey/bash-install/main/update.ubuntu.sh -O update.sh

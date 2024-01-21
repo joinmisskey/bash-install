@@ -1,4 +1,4 @@
-# Misskey install shell script v3.2.1
+# Misskey install shell script v3.2.2
 Install Misskey with one shell script!  
 
 You can install misskey on an Ubuntu server just by answering some questions.  
@@ -48,6 +48,7 @@ The update script does not update the environment.
 Please refer to CHANGELOG (Japanese) and [GitHub release list (English)](https://github.com/joinmisskey/bash-install/releases) and perform migration operations accordingly.
 
 First, download the script.
+If there is an update of the update script, please wget it again.
 
 ```
 wget https://raw.githubusercontent.com/joinmisskey/bash-install/main/update.ubuntu.sh -O update.sh

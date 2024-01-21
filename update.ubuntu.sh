@@ -71,6 +71,7 @@ cd ~/$misskey_directory;
 tput setaf 3;
 echo "Process: git pull;";
 tput setaf 7;
+git checkout -- .;
 git pull;
 git submodule update --init;
 MKEOF

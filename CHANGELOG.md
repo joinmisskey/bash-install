@@ -3,6 +3,10 @@ For Misskey v13 production and later RC (since 13.0.0-rc.10)
 
 The English version is available at https://github.com/joinmisskey/bash-install/releases .
 
+## v3.2.2
+- nginxのアップロードの上限を80mから250mにしました。
+- アップデートスクリプトで、`git pull`の前に`git checkout -- .`するようにしました。
+
 ## v3.2.1
 Node.jsのダウンロード元(nodesource提供)が変更になりました。
 
