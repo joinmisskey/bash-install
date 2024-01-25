@@ -22,7 +22,7 @@
 #
 
 #Version of this script
-version="4.0.0-beta.1";
+version="4.0.0-beta.2";
 NODE_MAJOR="20";
 
 #About this script
@@ -734,7 +734,7 @@ function options() {
                     # Make swap
                     echo "OK, you make swap.";
                     swap=true;
-                    swap_size=$((3 - "${mem_allarr[1]}"))*1024;
+                    swap_size=$(( (3 - "${mem_allarr[1]}") * 1024 ));
                     echo "Swap size: ${swap_size}MB";
                     break
                     ;;
