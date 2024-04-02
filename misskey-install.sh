@@ -920,8 +920,21 @@ function install() {
     function git_clone() {
         echo "";
         tput setaf 3; echo "Process: clone git repository;"; tput setaf 7;
-        sudo -iu "$misskey_user" git clone --no-single-branch --recursive "$git_repository" "$misskey_directory";
-        sudo -iu "$misskey_user" git -C "$misskey_directory" checkout "$git_branch";
+        # git clone --depth 1 --branch "$git_branch" "$git_repository" "$misskey_directory" --recursive;
+        # but supports any branch, tag, commit hash, or remote ref
+        sudo -iu "$misskey_user" mkdir -p "$misskey_directory"
+        sudo -iu "$misskey_user" git init "$misskey_directory"
+        sudo -iu "$misskey_user" git -C "$misskey_directory" remote add origin "$git_repository"
+        sudo -iu "$misskey_user" git -C "$misskey_directory" fetch --depth 1 origin "$git_branch"
+        if [ -f "$misskey_directory/.git/refs/remotes/origin/$git_branch" ]; then
+          # if the fetched ref is a branch, check it out
+          sudo -iu "$misskey_user" git -C "$misskey_directory" checkout "$git_branch"
+        else
+          # if the fetched ref is a tag, commit hash, or remote ref, create a detached HEAD
+          sudo -iu "$misskey_user" git -C "$misskey_directory" checkout --detach FETCH_HEAD
+        fi
+        # initialize submodules recursively
+        sudo -iu "$misskey_user" git -C "$misskey_directory" submodule update --init --recursive --depth 1
     }
 
     #Create misskey config file
