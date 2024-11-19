@@ -16,6 +16,17 @@ sudo apt update;
 sudo apt install -y nodejs;
 ```
 
+次に、Misskeyをインストールしたディレクトリに移動し、rebuildします。
+
+```
+sudo su - misskey;
+cd misskey;
+pnpm rebuild -r;
+exit;
+```
+
+あとは、通常通りアップデートスクリプトを実行します。
+
 ## v3.2.2
 - nginxのアップロードの上限を80mから250mにしました。
 - アップデートスクリプトで、`git pull`の前に`git checkout -- .`するようにしました。
