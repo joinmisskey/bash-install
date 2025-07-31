@@ -546,14 +546,7 @@ if $nginx_local; then
     echo -e "Package: *\nPin: origin nginx.org\nPin: release o=nginx\nPin-Priority: 900\n" | sudo tee /etc/apt/preferences.d/99nginx;
 fi
 
-if [ $method == "systemd" ]; then
-	tput setaf 3;
-	echo "Process: prepare node.js;"
-	tput setaf 7;
-	curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/nodesource.gpg;
-	echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list;
-
-else
+if [ $method != "systemd" ]; then
 	tput setaf 3;
 	echo "Process: prepare docker;"
 	tput setaf 7;
@@ -576,13 +569,6 @@ echo "Process: apt install #2;"
 tput setaf 7;
 apt -qq update -y;
 apt -qq install -y$([ $method == "systemd" ] && echo " nodejs libjemalloc-dev" || echo " docker-ce docker-ce-cli containerd.io")$($redis_local && echo " redis")$($nginx_local && echo " nginx");
-
-if [ $method == "systemd" ]; then
-	tput setaf 3;
-	echo "Process: corepack enable;"
-	tput setaf 7;
-	corepack enable;
-fi
 
 echo "Display: Versions;"
 if [ $method == "systemd" ]; then
@@ -849,7 +835,16 @@ if [ $method == "systemd" ]; then
 #region work with misskey user
 su "$misskey_user" << MKEOF;
 set -eu;
-cd ~
+cd ~;
+
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash;
+source ~/.nvm/nvm.sh;
+nvm install $NODE_MAJOR;
+node -v;
+
+curl -fsSL https://get.pnpm.io/install.sh | sh -;
+pnpm -v;
+
 cd "$misskey_directory";
 
 tput setaf 3;

@@ -85,6 +85,10 @@ systemctl stop "$host"
 #region work with misskey user
 su "$misskey_user" << MKEOF
 set -eu;
+
+source ~/.nvm/nvm.sh;
+nvm install 22;
+
 cd ~/$misskey_directory;
 
 tput setaf 3;
