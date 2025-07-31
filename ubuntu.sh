@@ -145,6 +145,13 @@ fi
 
 tput setaf 3;
 echo "";
+echo "The setup password you first enter in Misskey:";
+echo "Please keep this password noted!!";
+tput setaf 7;
+read -r -p "> " -e -i "$(tr -dc 0-9A-Za-z < /dev/urandom | fold -w 32 | head -1)" setup_password;
+
+tput setaf 3;
+echo "";
 echo "Enter the name of user with which you want to execute Misskey:";
 tput setaf 7;
 read -r -p "> " -e -i "misskey" misskey_user;
@@ -466,6 +473,8 @@ tput setaf 7;
 cat > "$misskey_directory/.config/default.yml" << _EOF
 url: https://$host
 port: $misskey_port
+
+setupPassword: '$setup_password'
 
 # PostgreSQL
 db:
