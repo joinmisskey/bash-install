@@ -939,12 +939,12 @@ tput setaf 7;
 echo "Watch the screen."
 echo "When it shows \"Now listening on port $misskey_port on https://$host\","
 echo "press Ctrl+C to exit logs and jump to https://$host/ and continue setting up your instance.";
-echo ""
+echo "";
 echo "This script version is v$version.";
-echo "Please follow @joinmisskey@misskey.io to address bugs and updates.";
-echo ""
+echo "Please regularly visit https://github.com/joinmisskey/bash-install/releases to check for updates!";
+echo "";
 read -r -p "Press Enter key to execute docker run> ";
-echo ""
+echo "";
 tput setaf 3;
 echo "Process: docker run;"
 tput setaf 7;

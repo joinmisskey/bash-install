@@ -3,6 +3,11 @@ For Misskey v13 production and later RC (since 13.0.0-rc.10)
 
 The English version is available at https://github.com/joinmisskey/bash-install/releases .
 
+## v3.3.0
+- setupPasswordに対応しました。最初の質問でセットアップパスワードを質問するようになります。質問の初期値にはランダムな文字列が挿入されます。
+
+既存サーバーの対応は不要です。
+
 ## v3.2.3
 Misskey v2023.11.0からNode.jsの最低バージョンがv22.11.0になりました。
 
