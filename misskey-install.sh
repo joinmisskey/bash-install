@@ -23,7 +23,7 @@
 
 #Version of this script
 version="4.0.0-beta.2";
-NODE_MAJOR="20";
+NODE_MAJOR="22";
 
 #About this script
 tput setaf 4;
