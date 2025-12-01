@@ -3,6 +3,30 @@ For Misskey v13 production and later RC (since 13.0.0-rc.10)
 
 The English version is available at https://github.com/joinmisskey/bash-install/releases .
 
+## v3.3.1
+Misskey v2025.11.0からNode.jsの最低バージョンがv24.11.0になりました。
+
+systemd方式を選択された方は、次のコマンドを実行し、Node.jsをアップデートしてください。
+
+```
+sudo rm /usr/share/keyrings/nodesource.gpg;
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/nodesource.gpg;
+NODE_MAJOR=22; echo "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list;
+sudo apt update;
+sudo apt install -y nodejs;
+```
+
+次に、Misskeyをインストールしたディレクトリに移動し、rebuildします。
+
+```
+sudo su - misskey;
+cd misskey;
+pnpm rebuild -r;
+exit;
+```
+
+あとは、通常通りアップデートスクリプトを実行します。
+
 ## v3.3.0
 - setupPasswordに対応しました。最初の質問でセットアップパスワードを質問するようになります。質問の初期値にはランダムな文字列が挿入されます。
 
