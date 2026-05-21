@@ -7,7 +7,7 @@ The English version is available at https://github.com/joinmisskey/bash-install/
 - データベースとRedisをローカルにインストールする場合、ユーザー名、パスワード、データベース名、Redisパスワードの初期値を自動入力するようにしました。
 - データベースまたはRedisに外部サーバーを利用する場合、不要な初期値を表示しないようにしました。
 - UFWを利用する設定で、apt install時のパッケージ指定が壊れる問題を修正しました。
-- pnpm 11でアップデートスクリプトが失敗する問題を修正しました。
+- Misskey v2026.5.2以降, pnpm 11でアップデートスクリプトが失敗する問題を修正しました。
 
 アップデートスクリプトを利用している方は、次のコマンドで `update.ubuntu.sh` を更新してください。
 
