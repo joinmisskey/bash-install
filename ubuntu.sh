@@ -415,7 +415,7 @@ tput setaf 3;
 echo "Process: apt install #1;";
 tput setaf 7;
 apt -qq update -y;
-apt -qq install -y curl nano jq gnupg2 apt-transport-https ca-certificates lsb-release software-properties-common uidmap$($nginx_local && echo " certbot")$($nginx_local && $ufw && echo " ufw")$($nginx_local && $iptables && echo " iptables-persistent"))$($cloudflare && echo " python3-certbot-dns-cloudflare")$([ $method != "docker_hub" ] && echo " git")$([ $method == "systemd" ] && echo " ffmpeg build-essential");
+apt -qq install -y curl nano jq gnupg2 apt-transport-https ca-certificates lsb-release software-properties-common uidmap$($nginx_local && echo " certbot")$($nginx_local && $ufw && echo " ufw")$($nginx_local && $iptables && echo " iptables-persistent")$($cloudflare && echo " python3-certbot-dns-cloudflare")$([ $method != "docker_hub" ] && echo " git")$([ $method == "systemd" ] && echo " ffmpeg build-essential");
 
 if [ $method != "docker_hub" ]; then
 #region work with misskey user
