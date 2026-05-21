@@ -93,6 +93,7 @@ su "$misskey_user" 3<&0 << MKEOF
 set -eu;
 exec <&3;
 cd ~/$misskey_directory;
+export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
 tput setaf 3;
 echo "Process: pnpm install;";
@@ -114,6 +115,7 @@ tput setaf 3;
 echo "Process: migrate db;";
 tput setaf 7;
 NODE_OPTIONS=--max_old_space_size=3072 pnpm run migrate;
+exit;
 }
 MKEOF
 #endregion

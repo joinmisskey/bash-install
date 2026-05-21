@@ -867,6 +867,7 @@ set -eu;
 exec <&3;
 cd ~
 cd "$misskey_directory";
+export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
 tput setaf 3;
 echo "Process: install npm packages;"
@@ -892,6 +893,7 @@ else
 	tput setaf 1;
 	echo "	NG.";
 fi
+exit;
 }
 MKEOF
 #endregion
