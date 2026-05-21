@@ -306,6 +306,12 @@ case "$yn" in
 		read -r -p "> " -e -i "$misskey_localhost" db_host;
 		echo "Database port:";
 		read -r -p "> " -e -i "5432" db_port;
+		echo "Database user name: ";
+		read -r -p "> " db_user;
+		echo "Database user password: ";
+		read -r -p "> " db_pass;
+		echo "Database name:";
+		read -r -p "> " db_name;
 		;;
 	*)
 		echo "PostgreSQL will be installed on this computer at $misskey_localhost:5432.";
@@ -313,15 +319,14 @@ case "$yn" in
 
 		db_host=$misskey_localhost;
 		db_port=5432;
+		echo "Database user name: ";
+		read -r -p "> " -e -i "misskey" db_user;
+		echo "Database user password: ";
+		read -r -p "> " -e -i "$(tr -dc 0-9A-Za-z < /dev/urandom | fold -w 32 | head -1)" db_pass;
+		echo "Database name:";
+		read -r -p "> " -e -i "mk1" db_name;
 		;;
 esac
-
-echo "Database user name: ";
-read -r -p "> " -e -i "misskey" db_user;
-echo "Database user password: ";
-read -r -p "> " db_pass;
-echo "Database name:";
-read -r -p "> " -e -i "mk1" db_name;
 #endregion
 
 #region redis
@@ -338,9 +343,11 @@ case "$yn" in
 		redis_local=false;
 
 		echo "Redis host:";
-		read -r -p "> " -e -i "$misskey_localhost" redis_host;
+		read -r -p "> " redis_host;
 		echo "Redis port:";
 		read -r -p "> " -e -i "6379" redis_port;
+		echo "Redis password:";
+		read -r -p "> " redis_pass;
 		;;
 	*)
 		echo "Redis will be installed on this computer at $misskey_localhost:6379.";
@@ -348,11 +355,10 @@ case "$yn" in
 
 		redis_host=$misskey_localhost;
 		redis_port=6379;
+		echo "Redis password:";
+		read -r -p "> " -e -i "$(tr -dc 0-9A-Za-z < /dev/urandom | fold -w 32 | head -1)" redis_pass;
 		;;
 esac
-
-echo "Redis password:";
-read -r -p "> " redis_pass;
 #endregion
 
 tput setaf 7;
