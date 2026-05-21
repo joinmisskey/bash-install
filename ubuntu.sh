@@ -856,8 +856,15 @@ fi
 if [ $method == "systemd" ]; then
 #region systemd
 #region work with misskey user
-su "$misskey_user" << MKEOF;
+# Save the TTY to fd3 and restore it with `exec <&3` in the subshell
+# to let commands work in an interactive environment and prevent future problems.
+# We need to restore the TTY as stdin in the subshell because running
+# `exec <&3` in the outer shell would make bash read commands from the
+# TTY instead of the heredoc.
+su "$misskey_user" 3<&0 << MKEOF
+{
 set -eu;
+exec <&3;
 cd ~
 cd "$misskey_directory";
 
@@ -885,6 +892,7 @@ else
 	tput setaf 1;
 	echo "	NG.";
 fi
+}
 MKEOF
 #endregion
 

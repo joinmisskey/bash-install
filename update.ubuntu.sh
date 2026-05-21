@@ -95,15 +95,15 @@ exec <&3;
 cd ~/$misskey_directory;
 
 tput setaf 3;
+echo "Process: pnpm install;";
+tput setaf 7;
+NODE_ENV=production pnpm install --frozen-lockfile;
+
+tput setaf 3;
 echo "Process: clean;";
 tput setaf 7;
 # since we're cleaning built dir, verifyDepsBeforeRun is not necessary. pnpm clean can be overridden by npm scripts
 PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN=false pnpm run clean;
-
-tput setaf 3;
-echo "Process: pnpm install;";
-tput setaf 7;
-NODE_ENV=production pnpm install --frozen-lockfile;
 
 tput setaf 3;
 echo "Process: build misskey;";
