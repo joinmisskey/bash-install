@@ -1530,9 +1530,16 @@ function install() {
 
         #Setup misskey
         tput setaf 3; echo "Process: setup misskey"; tput setaf 7;
-        sudo -iu "$misskey_user" <<-EOF;
+
+        # Save the TTY to fd3 and restore it with `exec <&3` in the subshell
+        # to let commands work in an interactive environment and prevent future problems.
+        # We need to restore the TTY as stdin in the subshell because running
+        # `exec <&3` in the outer shell would make bash read commands from the
+        # TTY instead of the heredoc.
+        su "$misskey_user" 3<&0 <<-EOF
 		{
 		set -eu;
+		exec <&3;
 		cd ~;
 		cd "$misskey_directory";
 		export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
