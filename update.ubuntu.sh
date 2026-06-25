@@ -64,7 +64,7 @@ tput setaf 3;
 echo "Process: update (systemd);";
 tput setaf 7;
 #region work with misskey user
-su "$misskey_user" << MKEOF
+su - "$misskey_user" << MKEOF
 set -eu;
 cd ~/$misskey_directory;
 
@@ -87,7 +87,7 @@ systemctl stop "$host"
 # We need to restore the TTY as stdin in the subshell because running
 # `exec <&3` in the outer shell would make bash read commands from the
 # TTY instead of the heredoc.
-su "$misskey_user" 3<&0 << MKEOF
+su - "$misskey_user" 3<&0 << MKEOF
 {
 set -eu;
 exec <&3;

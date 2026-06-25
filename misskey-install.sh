@@ -1536,7 +1536,7 @@ function install() {
         # We need to restore the TTY as stdin in the subshell because running
         # `exec <&3` in the outer shell would make bash read commands from the
         # TTY instead of the heredoc.
-        su "$misskey_user" 3<&0 <<-EOF
+        su - "$misskey_user" 3<&0 <<-EOF
 		{
 		set -eu;
 		exec <&3;
