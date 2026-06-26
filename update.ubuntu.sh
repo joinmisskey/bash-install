@@ -20,6 +20,12 @@
 #
 version="3.2.1";
 
+# GitHub Actions 側の制約により、sudo/su で別ユーザーに切り替えても
+# runner ユーザーの XDG_CONFIG_HOME が残ることがある。
+# https://github.com/actions/runner-images/issues/13049
+# Git/pnpm などが /home/runner/.config を読みに行かないようにする。
+unset XDG_CONFIG_HOME;
+
 tput setaf 2;
 echo "Check: root user;";
 if [ "$(whoami)" != 'root' ]; then
